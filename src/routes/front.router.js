@@ -2,11 +2,8 @@ import '../config/environment.js';
 import express from 'express';
 const router = express.Router();
 import { login, loginUsingUserId, register, checkUserNameAvailability, sendEmailOtp, verifyEmailOtp } from '../controllers/login.controller.js';
-
-// const { STRIPE_API_KEY, STRIPE_SECRET_KEY, FRONT_BASE_URL } = process.env;
-// import Stripe from 'stripe';
-// const stripe = Stripe(STRIPE_SECRET_KEY);
-
+import announcementRouter from './announcement.router.js';
+ 
 
 router.post('/login', async (req, res, next) => {
 	res.send(await login({ payload: { ...req.params, ...req.query, ...req.body }, headers: req.headers }));
@@ -30,5 +27,8 @@ router.post('/send-email-otp', async (req, res, next) => {
 router.post('/verify-email-otp', async (req, res, next) => {
 	res.send(await verifyEmailOtp({ payload: { ...req.params, ...req.query, ...req.body }, headers: req.headers }));
 });
+
+
+router.use('/announcement', announcementRouter);
 
 export default router;

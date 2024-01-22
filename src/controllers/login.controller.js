@@ -52,7 +52,7 @@ export const login = async (request) => {
 	try {
 		const { payload } = request;
 		const data = {
-			email: payload.email,
+			phone: payload.phone,
 			password: payload.password,
 		};
 		const [err, validatedData] = await loginValidator(data);
@@ -60,17 +60,17 @@ export const login = async (request) => {
 			return err;
 		}
 		const checkUser = await User.findOne({
-			where: { email: validatedData?.email },
+			where: { phone: validatedData?.phone },
 		});
 
 		if (!checkUser) {
-			return { status: 400, data: [], error: { message: 'Invalid email or password !' } };
+			return { status: 400, data: [], error: { message: 'Invalid phone or password !' } };
 		}
 
 		const compPass = await compareHashedStr(validatedData?.password, checkUser.password);
 
 		if (!compPass) {
-			return { status: 400, data: [], error: { message: 'Invalid email or password !' } };
+			return { status: 400, data: [], error: { message: 'Invalid phone or password !' } };
 		}
 
 		/**
@@ -80,10 +80,8 @@ export const login = async (request) => {
 			id: checkUser.id,
 			email: checkUser.email,
 			role: checkUser.role,
-			avatar: checkUser.avatar,
 			name: checkUser.name,
-			userName: checkUser.userName,
-			// theme: checkUser?.theme,
+			phone: checkUser.phone,
 		};
 
 		const accessToken = await generateToken(jwtPayload, JWT_ALGO, ACCESS_TOKEN_SECRET_KEY, Number(ACCESS_TOKEN_EXPIRES_IN));
@@ -95,6 +93,7 @@ export const login = async (request) => {
 			data: {
 				accessToken,
 				refreshToken,
+				user: checkUser
 			},
 		};
 	} catch (e) {
@@ -107,37 +106,40 @@ export const register = async (request) => {
 		const { payload } = request;
 
 		const data = {
-			userName: payload.userName,
 			name: payload.name,
 			email: payload.email,
+			phone: payload.phone,
 			password: payload.password,
 			confirmPassword: payload.confirmPassword,
-			avatar: payload.avatar,
 			role: payload.role,
-			// theme: payload.theme,
 		};
+
 		const [err, validatedData] = await registrationValidator(data);
 		if (err) {
 			return err;
 		}
 
-		const user = await User.create({
-			userName: validatedData.userName,
+		const afterValidate = {
 			name: validatedData.name ?? validatedData.userName,
 			email: validatedData.email,
+			phone: validatedData.phone,
 			password: await hashStr(validatedData?.password),
-			avatar: validatedData?.avatar,
 			role: validatedData?.role ?? 'USER',
-			// theme: payload.theme,
-		});
+		};
+		// return {
+		// 	data: afterValidate,
+		// 	status: 200,
+		// 	message: 'User registration successful',
+		// };
+
+		const user = await User.create(afterValidate);
 
 		const jwtPayload = {
 			id: user.id,
 			email: user.email,
 			role: user.role,
-			avatar: user.avatar,
 			name: user.name,
-			userName: user.userName,
+			phone: user.phone,
 		};
 
 		const accessToken = await generateToken(jwtPayload, JWT_ALGO, ACCESS_TOKEN_SECRET_KEY, Number(ACCESS_TOKEN_EXPIRES_IN));
@@ -147,6 +149,7 @@ export const register = async (request) => {
 			data: {
 				accessToken,
 				refreshToken,
+				user
 			},
 			status: 200,
 			message: 'User registration successful',

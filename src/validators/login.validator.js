@@ -5,21 +5,19 @@ const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
 
 const commonValidators = {
 	email: joi.string().email({ minDomainSegments: 2 }),
-	userName: joi.string(),
 	name: joi.string(),
+	phone: joi.string(),
 	password: joi.string(),
 	confirmPassword: joi.string().required(),
-	avatar: joi.string(),
 	role: joi.string(),
-	theme: joi.string(),
 };
 
 export const registrationValidator = async (data) => {
 	try {
 		const schema = joi.object({
 			email: commonValidators.email.required(),
-			name: commonValidators.name.optional(),
-			userName: commonValidators.userName.required(),
+			name: commonValidators.name.required(),
+			phone: commonValidators.phone.required(),
 			password: commonValidators.password
 				.pattern(new RegExp(passwordRegex))
 				.messages({
@@ -30,9 +28,7 @@ export const registrationValidator = async (data) => {
 				'any.only': 'confirm password does not match',
 				'any.required': 'confirm password is required',
 			}),
-			avatar: commonValidators.avatar.optional(),
 			role: commonValidators.role.optional(),
-			// theme: commonValidators.theme.required(),
 		});
 		const validatedData = await schema.validateAsync(data);
 
@@ -40,10 +36,9 @@ export const registrationValidator = async (data) => {
 		if (checkEmail) {
 			return [{ status: 400, data: [], error: { message: 'Email already exist !' } }, null];
 		}
-
-		const checkUserName = await User.findOne({ where: { userName: validatedData?.userName } });
-		if (checkUserName) {
-			return [{ status: 400, data: [], error: { message: 'User name already exist !' } }, null];
+		const checkPhone = await User.findOne({ where: { phone: validatedData?.phone } });
+		if (checkPhone) {
+			return [{ status: 400, data: [], error: { message: 'Phone already exist !' } }, null];
 		}
 		return [null, validatedData];
 	} catch (e) {
@@ -62,7 +57,7 @@ export const registrationValidator = async (data) => {
 export const loginValidator = async (data) => {
 	try {
 		const schema = joi.object({
-			email: commonValidators.email.required(),
+			phone: commonValidators.phone.required(),
 			password: commonValidators.password.required(),
 		});
 		return [null, await schema.validateAsync(data)];

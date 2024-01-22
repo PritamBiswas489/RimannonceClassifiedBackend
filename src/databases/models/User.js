@@ -11,12 +11,12 @@ export default function User(sequelize, DataTypes) {
 				type: DataTypes.STRING,
 				allowNull: true,
 			},
-			userName: {
+			email: {
 				type: DataTypes.STRING,
 				allowNull: true,
 				unique: true,
 			},
-			email: {
+			phone: {
 				type: DataTypes.STRING,
 				allowNull: true,
 				unique: true,
@@ -28,31 +28,6 @@ export default function User(sequelize, DataTypes) {
 			avatar: {
 				type: DataTypes.STRING,
 				allowNull: true,
-			},
-			banner: {
-				type: DataTypes.STRING,
-				allowNull: true,
-			},
-			fbLink: {
-				type: DataTypes.STRING,
-				allowNull: true,
-			},
-			twLink: {
-				type: DataTypes.STRING,
-				allowNull: true,
-			},
-			instaLink: {
-				type: DataTypes.STRING,
-				allowNull: true,
-			},
-			about: {
-				type: DataTypes.STRING,
-				allowNull: true,
-			},
-			artistType: {
-				type: DataTypes.INTEGER,
-				allowNull: true,
-				 
 			},
 			role: {
 				type: DataTypes.ENUM,
