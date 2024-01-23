@@ -30,3 +30,39 @@ export const generatePusherChannel = (userId1, userId2) => {
 	const sortedId = ids.sort();
 	return `presence-channel-${sortedId[0]}-${sortedId[1]}`;
 };
+
+export function getRandomChar(characters) {
+	const randomIndex = Math.floor(Math.random() * characters.length);
+	return characters.charAt(randomIndex);
+}
+   
+
+export function generateRandomPassword() {
+	const length = 8;
+	const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
+	const numberChars = '0123456789';
+	const specialChars = '!@#$%^&*()_-+=<>?';
+  
+	const allChars = uppercaseChars + lowercaseChars + numberChars + specialChars;
+  
+	let password = '';
+	
+	// Ensure at least one character from each category
+	password += getRandomChar(uppercaseChars);
+	password += getRandomChar(lowercaseChars);
+	password += getRandomChar(numberChars);
+	password += getRandomChar(specialChars);
+  
+	// Fill the remaining length with random characters
+	for (let i = password.length; i < length; i++) {
+	  password += getRandomChar(allChars);
+	}
+  
+	// Shuffle the password to randomize the order
+	password = password.split('').sort(() => Math.random() - 0.5).join('');
+  
+	return password;
+  }
+  
+ 

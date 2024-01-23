@@ -4,7 +4,7 @@ import { hashStr, compareHashedStr, generateToken } from '../libraries/auth.js';
 import db from '../databases/models/index.js';
 import { smtpConnection } from '../config/mail.config.js';
 import { resolve as pathResolve, dirname, join as pathJoin } from 'path';
-import { generateHtmlTemplate, generateOtp } from '../libraries/utility.js';
+import { generateHtmlTemplate, generateOtp, generateRandomPassword } from '../libraries/utility.js';
 
 const { User, Op } = db;
 const { ACCESS_TOKEN_SECRET_KEY, REFRESH_TOKEN_SECRET_KEY, JWT_ALGO, ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN, MAIL_FROM, NODE_ENV } = process.env;
@@ -175,6 +175,45 @@ export const checkUserNameAvailability = async (request) => {
 		}
 		return { status: 200, data: [], message: 'User not exist !' };
 	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+};
+
+export const sendForgetPasswordEmail = async (request) => {
+	try {
+		const { payload } = request;
+		const email = payload?.email ;
+		if(email ===''){
+			return { status: 400, data: [], error: { message: 'Email not found!' } };
+		}
+		const checkEmail = await User.findOne({ where: { email : email } });
+		if (!checkEmail) {
+			return { status: 400, data: [], error: { message: 'Email not registered!' } };
+		}
+		const connection = smtpConnection();
+		const randomPassword = generateRandomPassword(); 
+		const htmlPath =
+			NODE_ENV === 'development' ? pathResolve(pathJoin(dirname('./'), 'src/view/email/newpassword.html')) : pathResolve(pathJoin(dirname('./'), '..', 'src/view/email/newpassword.html'));
+		const htmlToSend = await generateHtmlTemplate(htmlPath, { otp:randomPassword });
+		const mailOptions = {
+			from: MAIL_FROM,
+			to: email,
+			subject: 'Forget password email',
+			html: htmlToSend,
+			attachments: [
+				{
+					filename: 'logo.png',
+					path:
+						NODE_ENV === 'development'
+							? pathResolve(pathJoin(dirname('./'), 'public/images/logo.png'))
+							: pathResolve(pathJoin(dirname('./'), '..', 'public/images/logo.png')),
+					cid: 'unique@logo', 
+				},
+			],
+		};
+		connection.sendMail(mailOptions);
+		return { status: 200, data: { randomPassword: randomPassword }, message: 'New password send to your email address.!' };
+	}catch (e) {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };

@@ -16,11 +16,14 @@ import ticketTypeRouter from './ticketType.router.js';
 import ticketRouter from './ticket.router.js';
 import ticketConversationRouter from './ticketConversation.router.js';
 const { Log, User } = db;
+import multer from 'multer';
+import path from 'path';
+
+
 
 const router = express.Router();
 
 router.use(jwtVerify);
-// router.use(authPermission('user', 'admin'));
 
 router.get('/get-auth-user', async (req, res, next) => {
 	res.return(
@@ -31,6 +34,40 @@ router.get('/get-auth-user', async (req, res, next) => {
 		})
 	);
 });
+
+
+const storage = multer.diskStorage({
+	destination: function (req, file, cb) {
+	  cb(null, 'uploads/');
+	},
+	filename: function (req, file, cb) {
+	  const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+	  cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+	},
+});
+const upload = multer({ storage: storage });  
+router.post('/upload-avatar', upload.single('avatar'), async (req, res) => {
+	try {
+	  if (!req.file) {
+		  res.return({ status: 400, data: [], error: { message: 'No file provided', reason: e.message } });
+	  }
+	  const filePath = req.file.path;
+	  const newFilePath = filePath.replace(/\\/g, '/');
+	  await User.update({avatar:newFilePath}, {
+		where: {
+			id: req.user.id,
+		},
+	  });
+	  res.return( { status: 200, data: { imagePath: newFilePath, user_id : req.user.id }, message: '' });
+	} catch (e) {
+	  if (e.message === 'No file provided') {
+		 res.return({ status: 400, data: [], error: { message: 'No file provided', reason: e.message } });
+	  } else {
+	 	 res.return({ status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } });
+	  }
+	}
+  });
+  
 
 
 router.use('/profile', profileRouter);

@@ -7,6 +7,10 @@ import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import { default as apiRouter } from './routes/index.router.js';
 import customReturn from './middlewares/responseBuilder.js';
+
+
+ 
+
 const { NODE_ENV } = process.env;
 
 const publicDir = NODE_ENV === 'development' ? pathResolve(pathJoin(dirname('./'), 'public')) : pathResolve(pathJoin(dirname('./'), '..', 'public'));
@@ -29,6 +33,9 @@ app.get('/test', (req, res, next) => {
 	console.log('process.env.NODE_ENV :>> ', process.env.NODE_ENV);
 	res.send({ msg: 'server working' });
 });
+
+app.use('/uploads', express.static('uploads'));
+
 app.use('/api', apiRouter);
 
 export default app;

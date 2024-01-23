@@ -2,24 +2,27 @@ import joi from 'joi';
 import db from '../databases/models/index.js';
 const { User, Op } = db;
 const commonValidators = {
-	// email: joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
-	userName: joi.string(),
+	phone: joi.string(),
 	name: joi.string(),
-	profileImg: joi.string(),
+	email: joi.string(),
 };
 
 export const editProfileValidator = async (data, userId) => {
 	try {
 		const schema = joi.object({
-			name: commonValidators.name.optional(),
-			userName: commonValidators.userName.required(),
-			profileImg: commonValidators.profileImg.required(),
+			name: commonValidators.name.required(),
+			email: commonValidators.email.required(),
+			phone: commonValidators.phone.required(),
 		});
 		const validatedData = await schema.validateAsync(data);
 
-		const checkUserName = await User.findOne({ where: { userName: validatedData?.userName, id: { [Op.ne]: userId } } });
-		if (checkUserName) {
-			return [{ status: 400, data: [], error: { message: 'User name already exist !' } }, null];
+		const checkEmail = await User.findOne({ where: { email: validatedData?.email, id: { [Op.ne]: userId } } });
+		if (checkEmail) {
+			return [{ status: 400, data: [], error: { message: 'Email already exist!' } }, null];
+		}
+		const checkPhone = await User.findOne({ where: { phone: validatedData?.phone, id: { [Op.ne]: userId } } });
+		if (checkPhone) {
+			return [{ status: 400, data: [], error: { message: 'Phone already exist!' } }, null];
 		}
 		return [null, validatedData];
 	} catch (e) {

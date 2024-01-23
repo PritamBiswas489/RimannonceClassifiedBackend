@@ -1,6 +1,7 @@
 import db from '../databases/models/index.js';
 import '../config/environment.js';
 import { default as api } from '../config/apiConfig.js';
+import { hashStr, compareHashedStr, generateToken } from '../libraries/auth.js';
 
 const { User, Op } = db;
 import { editProfileValidator } from '../validators/profile.validator.js';
@@ -33,6 +34,50 @@ export const getProfileDetails = async (request) => {
 };
 
 export const editProfile = async (request) => {
+	try {
+		const { payload, user } = request;
+		const rawData = {
+			phone: payload.phone,
+			email: payload.email,
+			name: payload.name,
+		};
+		const [err, validatedData] = await editProfileValidator(rawData, user.id);
+		if (err) {
+			return err;
+		}
+
+		const updatedData = {
+			name: validatedData.name,
+			email: validatedData.email,
+			phone: validatedData.phone,
+		};
+		let successMessage = 'Profile updated successfully!';
+		if(payload?.password!==''){
+			updatedData.password = await hashStr(payload?.password);
+			successMessage = 'Profile and password updated successfully!';
+		}
+		await User.update(updatedData, {
+			where: {
+				id: user.id,
+			},
+		});
+		const userData = await User.findOne({ where: { id: user.id } });
+
+		return {
+			status: 200,
+			data: {
+				user:userData
+			},
+			message: successMessage,
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+
+}
+export const editProfileBk = async (request) => {
 	try {
 		const { payload, user } = request;
 		const rawData = {
