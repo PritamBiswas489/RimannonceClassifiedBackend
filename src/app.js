@@ -7,6 +7,8 @@ import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import { default as apiRouter } from './routes/index.router.js';
 import customReturn from './middlewares/responseBuilder.js';
+import { deleteExistingAvatar } from './libraries/utility.js';
+ 
 
 
  
@@ -33,6 +35,8 @@ app.get('/test', (req, res, next) => {
 	console.log('process.env.NODE_ENV :>> ', process.env.NODE_ENV);
 	res.send({ msg: 'server working' });
 });
+
+ 
 
 app.use('/uploads', express.static('uploads'));
 

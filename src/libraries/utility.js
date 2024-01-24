@@ -1,6 +1,15 @@
 import handlebars from 'handlebars';
 import fs from 'fs';
 
+
+export const deleteExistingAvatar = async (filePath) =>{
+	try {
+		await fs.promises.unlink(filePath);
+		console.log('File deleted successfully');
+	  } catch (err) {
+		console.error(`Error deleting file: ${err}`);
+	  }
+}
 export const slugify = (str) =>
 	str
 		.toLowerCase()

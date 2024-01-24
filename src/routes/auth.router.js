@@ -18,6 +18,7 @@ import ticketConversationRouter from './ticketConversation.router.js';
 const { Log, User } = db;
 import multer from 'multer';
 import path from 'path';
+import { deleteExistingAvatar } from '../libraries/utility.js';
 
 
 
@@ -50,6 +51,11 @@ router.post('/upload-avatar', upload.single('avatar'), async (req, res) => {
 	try {
 	  if (!req.file) {
 		  res.return({ status: 400, data: [], error: { message: 'No file provided', reason: e.message } });
+	  }
+	  //user data checking
+	  const userData = await User.findOne({ where: { id: req.user.id } });
+	  if(userData.avatar!==''){
+        const deleteFile  = await deleteExistingAvatar(userData.avatar);
 	  }
 	  const filePath = req.file.path;
 	  const newFilePath = filePath.replace(/\\/g, '/');
