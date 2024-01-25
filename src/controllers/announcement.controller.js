@@ -6,14 +6,24 @@ export const createAnnouncement = async (request) => {
     try {
 		const { payload, user } = request;
 		const announcementData = {
-			title: payload.title,
-			description: payload.description,
-			created_by: 0
+			title: payload?.title,
+			category: payload?.category,
+			description: payload?.description,
+			locationId: payload?.locationId,
+			location: payload?.location,
+			subLocationId: payload?.subLocationId,
+			subLocation: payload?.subLocation,
+			gpDeliveryOrigin: payload?.gpDeliveryOrigin,
+			gpDeliveryDestination: payload?.gpDeliveryDestination,
+			gpDeliveryDate: payload?.gpDeliveryDate,
+			contactNumber: payload?.contactNumber,
+			isPremium: payload?.isPremium || 0,
+			createdBy:user?.id || 0 ,
 		};
 	    const createData = await Announcement.create(announcementData);
         return {
             status: 200,
-            data: {},
+            data: {user_id:user?.id},
             message: 'Announcement created successfully',
             error: {},
         };

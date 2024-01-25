@@ -2,12 +2,22 @@ import express from 'express';
 import { createAnnouncement, listAnnouncement } from '../controllers/announcement.controller.js';
 const router = express.Router();
 
-router.get('/create-test-data', async (req, res, next) => {
+router.post('/create-test-data', async (req, res, next) => {
 	res.return(
 		await createAnnouncement({
 			payload: { ...req.params, ...req.query, ...req.body },
 			headers: req.headers,
 			// user: req.user,
+		})
+	);
+});
+
+router.post('/create', async (req, res, next) => {
+	res.return(
+		await createAnnouncement({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
 		})
 	);
 });

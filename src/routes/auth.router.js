@@ -19,6 +19,7 @@ const { Log, User } = db;
 import multer from 'multer';
 import path from 'path';
 import { deleteExistingAvatar } from '../libraries/utility.js';
+import announcementRouter from './announcement.router.js';
 
 
 
@@ -85,5 +86,6 @@ router.use('/ticket', ticketRouter);
 router.use('/ticket-conversation', ticketConversationRouter);
 router.use('/notification', notificationRouter);
 router.use('/like', likeRouter);
+router.use('/announcement', announcementRouter);
 
 export default router;

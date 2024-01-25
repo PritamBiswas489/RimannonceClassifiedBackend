@@ -16,8 +16,51 @@ export default function Announcement(sequelize, DataTypes) {
 				type: DataTypes.STRING,
 				allowNull: true,
 			},
+			category: {
+				type: DataTypes.STRING,
+				allowNull: true,
+			},
 			description: {
 				type: DataTypes.TEXT,
+				allowNull: true,
+			},
+			locationId: {
+				type: DataTypes.INTEGER,
+				defaultValue:0,
+				allowNull: true,
+			},
+			location: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
+			subLocationId: {
+				type: DataTypes.INTEGER,
+				defaultValue:0,
+				allowNull: true,
+			},
+			subLocation: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
+			gpDeliveryOrigin: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
+			gpDeliveryDestination: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
+			gpDeliveryDate: {
+				type: DataTypes.DATE,
+				allowNull: true,
+			},
+			contactNumber: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
+			isPremium: {
+				type: DataTypes.INTEGER,
+				defaultValue:0,
 				allowNull: true,
 			},
 			createdBy: {
