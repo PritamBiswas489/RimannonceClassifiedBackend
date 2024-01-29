@@ -176,3 +176,33 @@ export const myOrderList = async (request) => {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
+
+export const addAmountToUserWallet = async (request) => {
+	try {
+		const { payload } = request;
+		const { user_id, amt } = payload;
+		const userDetails = await User.findOne({ where: { id: user_id } });
+
+		if(userDetails?.id){
+			let amtData  = parseFloat(userDetails?.walletAmount) + parseFloat(amt)
+
+		    await User.update(
+				{ walletAmount: amtData },
+				{
+					where: {
+						id: user_id,
+					},
+				}
+			);
+			const check = await User.findOne({ where: { id: user_id } });
+			return { status: 500, data: check };
+		}
+
+       return { status: 500, data: [], error: { message: 'User not found !' } };
+
+	}catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+
+}

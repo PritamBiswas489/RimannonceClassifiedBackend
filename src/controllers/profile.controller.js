@@ -5,6 +5,7 @@ import { hashStr, compareHashedStr, generateToken } from '../libraries/auth.js';
 
 const { User, Op } = db;
 import { editProfileValidator } from '../validators/profile.validator.js';
+import { request } from 'express';
 
 export const getProfileDetails = async (request) => {
 	try {
@@ -32,6 +33,24 @@ export const getProfileDetails = async (request) => {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
+export const getUserWalletAmount = async (request)=>{
+	try {
+		const { payload, user } = request;
+		const userDetails = await User.findOne({ where: { id: user.id }, attributes: [
+			'walletAmount'
+		
+		] });
+		return {
+			status: 200,
+			data: userDetails,
+			message: '',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
 
 export const editProfile = async (request) => {
 	try {

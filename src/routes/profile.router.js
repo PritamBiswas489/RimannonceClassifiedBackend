@@ -1,5 +1,5 @@
 import express from 'express';
-import { getProfileDetails, editProfile } from '../controllers/profile.controller.js';
+import { getProfileDetails, editProfile, getUserWalletAmount } from '../controllers/profile.controller.js';
 const router = express.Router();
 
 router.get('/detail', async (req, res, next) => {
@@ -11,6 +11,16 @@ router.get('/detail', async (req, res, next) => {
 		})
 	);
 });
+router.get('/get-user-wallet-amount', async (req, res, next) => {
+	res.return(
+		await getUserWalletAmount({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+    
+})
 router.post('/edit', async (req, res, next) => {
 	res.return(
 		await editProfile({

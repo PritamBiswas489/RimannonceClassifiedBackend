@@ -41,6 +41,10 @@ export default function User(sequelize, DataTypes) {
 				allowNull: true,
 				defaultValue: 'USER',
 			},
+			walletAmount:{
+				type:DataTypes.DECIMAL(10, 2),
+				defaultValue:0,
+			},
 			isPromoted: {
 				type: DataTypes.INTEGER,
 			},

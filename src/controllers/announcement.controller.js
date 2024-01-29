@@ -1,6 +1,6 @@
 import db from '../databases/models/index.js';
 import { default as api } from '../config/apiConfig.js';
-const { Announcement, AnnouncementMedia, Op } = db;
+const { Announcement,User, AnnouncementMedia, Op, Settings } = db;
 
 export const createAnnouncement = async (request) => {
 	try {
@@ -23,8 +23,65 @@ export const createAnnouncement = async (request) => {
 			isPremium: payload?.isPremium || 0,
 			createdBy: user?.id || 0,
 		};
+		//============= get user wallet amount  =================//
+
+		const getUserWalletAmount = await User.findOne({ where: { id: user.id }, attributes: [
+			'walletAmount'
+		
+		] });
+
+        const { walletAmount } = getUserWalletAmount;
+		let userWalletAmount = parseFloat(walletAmount);
+
+		if(parseInt(payload?.isPremium) === 1){
+			//============= get catgeory post amount =================//
+			let postCategoryAmount = 0;
+			if(payload?.category === 'car'){
+				const getSettings = await Settings.findOne({ where: { keyValue: 'car_premium_price' }});
+				postCategoryAmount = parseFloat(getSettings.dataValue);
+			}
+			if(payload?.category ===   'apartment'){
+				const getSettings = await Settings.findOne({ where: { keyValue: 'apartment_premium_price' }});
+				postCategoryAmount = parseFloat(getSettings.dataValue);
+				
+			}
+			if(payload?.category === 'gp_delivery'){
+				const getSettings = await Settings.findOne({ where: { keyValue: 'gb_delivery_premium_price' }});
+				postCategoryAmount = parseFloat(getSettings.dataValue);
+				
+			}
+			if(payload?.category === 'land_sale'){
+				const getSettings = await Settings.findOne({ where: { keyValue: 'land_sale_premium_price' }});
+				postCategoryAmount = parseFloat(getSettings.dataValue);
+				
+			}
+            //============= checking user have amount to post =======//
+			if(userWalletAmount < postCategoryAmount){
+				return { status: 500, data: {requestWallet:1}, error: { message: `Your waller need  minimum $${postCategoryAmount} to post this announcement` } };
+
+			}
+
+			//============ user wallet amount after deduct =======================//
+
+			userWalletAmount = userWalletAmount - postCategoryAmount
+
+		}
+
 		const createData = await Announcement.create(announcementData);
 		if (createData?.id) {
+			if(parseInt(payload?.isPremium) === 1){
+				await User.update(
+					{ walletAmount: userWalletAmount },
+					{
+						where: {
+							id: user.id,
+						},
+					}
+				);
+				///================= Insert into transaction table ====================////
+			}
+            
+
 			const promises = files.map(async (data, index) => {
 				const mediaData = {
 					announcementId: createData?.id,
@@ -34,9 +91,15 @@ export const createAnnouncement = async (request) => {
 				return await AnnouncementMedia.create(mediaData);
 			});
 			const resolvedData = await Promise.all(promises);
+
+			const getUsrWalletAmt = await User.findOne({ where: { id: user.id }, attributes: [
+				'walletAmount'
+			
+			] });
+			const { walletAmount } = getUsrWalletAmt;
 			return {
 				status: 200,
-				data: createData,
+				data: {walletAmount,createData},
 				message: 'Announcement created successfully',
 				error: {},
 			};
@@ -44,6 +107,7 @@ export const createAnnouncement = async (request) => {
 			return { status: 500, data: [], error: { message: 'Failed !' } };
 		}
 	} catch (e) {
+		console.log( e.message);
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
