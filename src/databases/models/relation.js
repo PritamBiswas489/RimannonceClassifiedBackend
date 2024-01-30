@@ -1,12 +1,11 @@
 const relation = (db) => {
-	const { User, Page, Drop, Product, Cart, PageAccess, Nft, Favorite, ArtistType, Ticket, TicketConversation, TicketType, UserAccount, Order, OrderProduct, OrderShipping, PrivateChat, Blog, Comment, GroupChat, Notification } = db;
-	// User.hasMany(Page, {
-	// 	foreignKey: 'userId',
-	// });
-	// User.belongsTo(ArtistType, {
-	// 	foreignKey: 'artistType',
-	// 	as: 'artistTypeDetail',
-	// });
+	const { Favorites, Announcement, User,         Ticket, TicketConversation, TicketType,    Blog, Comment,    Notification } = db;
+	 
+	Favorites.belongsTo(Announcement, {
+		foreignKey: 'announcementId',
+		as: 'favoritesAnnouncement',
+	});
+
 	Ticket.belongsTo(TicketType, {
 		foreignKey: 'ticketType',
 		as: 'ticketTypeDetail',
@@ -19,12 +18,7 @@ const relation = (db) => {
 		foreignKey: 'fromUserId',
 		as: 'userDetail',
 	});
-	// UserAccount.belongsTo(User, {
-	// 	foreignKey: 'userId',
-	// });
-	// User.hasOne(UserAccount, {
-	// 	foreignKey: 'userId',
-	// });
+	 
 	Blog.belongsTo(User, {
 		foreignKey: 'createdBy',
 		as: 'blogOwner',

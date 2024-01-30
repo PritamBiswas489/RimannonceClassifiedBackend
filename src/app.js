@@ -39,6 +39,7 @@ app.get('/test', (req, res, next) => {
  
 
 app.use('/uploads', express.static('uploads'));
+app.use('/upload-announcement-files', express.static('upload-announcement-files'));
 
 app.use('/api', apiRouter);
 

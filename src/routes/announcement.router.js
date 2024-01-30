@@ -1,5 +1,11 @@
 import express from 'express';
-import { createAnnouncement, listAnnouncement } from '../controllers/announcement.controller.js';
+import { 
+	createAnnouncement, 
+	listAnnouncement,
+    myAnnouncementListing, 
+	myFavoriteAnnouncementListing
+
+} from '../controllers/announcement.controller.js';
 const router = express.Router();
 import multer from 'multer';
 import path from 'path';
@@ -49,6 +55,25 @@ router.post('/create', async (req, res, next) => {
 			})
 		);
 	});
+});
+
+router.get('/my-listing', async (req, res, next) => {
+	res.return(
+		await myAnnouncementListing({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+router.get('/my-favorite-listing', async (req, res, next) => {
+	res.return(
+		await myFavoriteAnnouncementListing({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
 });
 
 router.get('/list-announcement', async (req, res, next) => {

@@ -1,6 +1,6 @@
 import db from '../databases/models/index.js';
 import { default as api } from '../config/apiConfig.js';
-const { Announcement,User, AnnouncementMedia, Op, Settings } = db;
+const { Announcement,User, AnnouncementMedia, Favorites, Op, Settings, sequelize } = db;
 
 export const createAnnouncement = async (request) => {
 	try {
@@ -119,6 +119,12 @@ export const listAnnouncement = async (request) => {
 		const offset = (page - 1) * limit;
 
 		const { count, rows } = await Announcement.findAndCountAll({
+			attributes: {
+				include: [
+					[ sequelize.literal('(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = Announcement.id LIMIT 1)'), 'media'],   
+			    ],
+			},
+			
 			offset: offset,
 			limit: limit,
 			order: [['id', 'DESC']],
@@ -140,3 +146,83 @@ export const listAnnouncement = async (request) => {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
+export const myAnnouncementListing = async (request) =>{
+	try {
+		const { payload , user} = request;
+		const limit = 15;
+		const page = payload?.page || 1;
+		const offset = (page - 1) * limit;
+
+		const { count, rows } = await Announcement.findAndCountAll({
+			where: { createdBy: user.id },
+			attributes: {
+				include: [
+					[ sequelize.literal('(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = Announcement.id LIMIT 1)'), 'media'],   
+			    ],
+			},
+			offset: offset,
+			limit: limit,
+			order: [['id', 'DESC']],
+		});
+
+		const data = {
+			meta: {
+				totalRecords: count,
+			},
+			records: rows,
+		};
+		return {
+			status: 200,
+			data: data,
+			message: 'Records fetched',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
+export const myFavoriteAnnouncementListing = async (request) =>{
+	try {
+		const { payload, user } = request;
+		const limit = 15;
+		const page = payload?.page || 1;
+		const offset = (page - 1) * limit;
+
+		const { count, rows } = await Favorites.findAndCountAll({
+			offset: offset,
+			limit: limit,
+			order: [['id', 'DESC']],
+			where: { addedBy: user.id },
+			include: [
+				{
+					model: Announcement,
+					as: 'favoritesAnnouncement',
+					where: { status: 'ACTIVE' },
+					
+					attributes: {
+						include: [
+							[ sequelize.literal('(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = favoritesAnnouncement.id LIMIT 1)'), 'media'],   
+						],
+					},
+				},
+			],
+		});
+
+		const data = {
+			meta: {
+				totalRecords: count,
+			},
+			records: rows,
+		};
+		return {
+			status: 200,
+			data: data,
+			message: 'Records fetched',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
