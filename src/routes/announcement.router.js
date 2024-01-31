@@ -3,8 +3,13 @@ import {
 	createAnnouncement, 
 	listAnnouncement,
     myAnnouncementListing, 
-	myFavoriteAnnouncementListing
-
+	myFavoriteAnnouncementListing,
+	getAnnouncementDetails,
+	getListGlobal,
+	getListGetGpApartment,
+	getListGetGpDelivery,
+	getListGetGpCar,
+	getListGlobalRand
 } from '../controllers/announcement.controller.js';
 const router = express.Router();
 import multer from 'multer';
@@ -75,10 +80,66 @@ router.get('/my-favorite-listing', async (req, res, next) => {
 		})
 	);
 });
-
+//list announcement
 router.get('/list-announcement', async (req, res, next) => {
 	res.return(
 		await listAnnouncement({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+router.get('/list-get-global', async (req, res, next) => {
+	res.return(
+		await getListGlobal({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+router.get('/list-get-global-rand', async (req, res, next) => {
+	res.return(
+		await getListGlobalRand({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+router.get('/list-get-gp-apartment', async (req, res, next) => {
+	res.return(
+		await getListGetGpApartment({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+router.get('/list-get-gp-delivery', async (req, res, next) => {
+	res.return(
+		await getListGetGpDelivery({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+router.get('/list-get-gp-car', async (req, res, next) => {
+	res.return(
+		await getListGetGpCar({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+
+//get announcement
+router.get('/get-announcement', async (req, res, next) => {
+	res.return(
+		await getAnnouncementDetails({
 			payload: { ...req.params, ...req.query, ...req.body },
 			headers: req.headers,
 			user: req.user,

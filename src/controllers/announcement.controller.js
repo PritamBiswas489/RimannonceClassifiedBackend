@@ -146,6 +146,270 @@ export const listAnnouncement = async (request) => {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
+export const getListGlobal = async (request) => {
+	try {
+		const { payload } = request;
+		const limit = 15;
+		const page = payload?.page || 1;
+		const cat = payload?.cat;
+		const search = payload?.search;
+		const offset = (page - 1) * limit;
+
+		const whereData = { status: 'ACTIVE', isPremium : 0 };
+		if(cat!==''){
+			whereData.category = cat;
+		}
+		if (search !== '') {
+			// Use sequelize's [Op.or] for a search on title or location
+			whereData[ Op.or] = [
+			  { title: { [ Op.like]: `%${search}%` } },
+			  { location: { [ Op.like]: `%${search}%` } },
+			  { subLocation: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryOrigin: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryDestination: { [ Op.like]: `%${search}%` } },
+			];
+		  }
+		const { count, rows } = await Announcement.findAndCountAll({
+			where: whereData,
+			attributes: {
+				include: [
+					[ sequelize.literal('(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = Announcement.id LIMIT 1)'), 'media'],   
+			    ],
+			},
+			
+			offset: offset,
+			limit: limit,
+			order: [['id', 'DESC']],
+		});
+
+		const data = {
+			meta: {
+				totalRecords: count,
+			},
+			records: rows,
+		};
+		return {
+			status: 200,
+			data: data,
+			message: 'Records fetched',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
+export const getListGlobalRand = async (request) =>{
+	try {
+		const { payload } = request;
+		const limit = 6;
+		const page = payload?.page || 1;
+		const cat = payload?.cat;
+		const search = payload?.search;
+		const offset = (page - 1) * limit;
+
+		const whereData = { status: 'ACTIVE', isPremium : 0 };
+		if(cat!==''){
+			whereData.category = cat;
+		}
+		if (search !== '') {
+			// Use sequelize's [Op.or] for a search on title or location
+			whereData[ Op.or] = [
+			  { title: { [ Op.like]: `%${search}%` } },
+			  { location: { [ Op.like]: `%${search}%` } },
+			  { subLocation: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryOrigin: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryDestination: { [ Op.like]: `%${search}%` } },
+			];
+		  }
+		const { count, rows } = await Announcement.findAndCountAll({
+			where: whereData,
+			attributes: {
+				include: [
+					[ sequelize.literal('(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = Announcement.id LIMIT 1)'), 'media'],   
+			    ],
+			},
+			
+			offset: offset,
+			limit: limit,
+			order: sequelize.literal('RAND()'),
+		});
+
+		const data = {
+			meta: {
+				totalRecords: count,
+			},
+			records: rows,
+		};
+		return {
+			status: 200,
+			data: data,
+			message: 'Records fetched',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
+export const getListGetGpApartment = async (request) => {
+	try {
+		const { payload } = request;
+		const limit = 15;
+		const page = payload?.page || 1;
+		 
+		const search = payload?.search;
+		const offset = (page - 1) * limit;
+
+		const whereData = { status: 'ACTIVE', isPremium : 1, category: 'apartment' };
+
+		 
+		if (search !== '') {
+			// Use sequelize's [Op.or] for a search on title or location
+			whereData[ Op.or] = [
+			  { title: { [ Op.like]: `%${search}%` } },
+			  { location: { [ Op.like]: `%${search}%` } },
+			  { subLocation: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryOrigin: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryDestination: { [ Op.like]: `%${search}%` } },
+			];
+		  }
+
+		const { count, rows } = await Announcement.findAndCountAll({
+			where: whereData,
+			attributes: {
+				include: [
+					[ sequelize.literal('(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = Announcement.id LIMIT 1)'), 'media'],   
+			    ],
+			},
+			
+			offset: offset,
+			limit: limit,
+			order: [['id', 'DESC']],
+		});
+
+		const data = {
+			meta: {
+				totalRecords: count,
+			},
+			records: rows,
+		};
+		return {
+			status: 200,
+			data: data,
+			message: 'Records fetched',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
+export const getListGetGpDelivery = async (request) => {
+	try {
+		const { payload } = request;
+		const limit = 15;
+		const page = payload?.page || 1;
+		const offset = (page - 1) * limit;
+		 
+		const search = payload?.search;
+
+		const whereData = { status: 'ACTIVE', isPremium : 1, category: 'gp_delivery' };
+		 
+		if (search !== '') {
+			// Use sequelize's [Op.or] for a search on title or location
+			whereData[ Op.or] = [
+			  { title: { [ Op.like]: `%${search}%` } },
+			  { location: { [ Op.like]: `%${search}%` } },
+			  { subLocation: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryOrigin: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryDestination: { [ Op.like]: `%${search}%` } },
+			];
+		  }
+
+		const { count, rows } = await Announcement.findAndCountAll({
+			where: whereData,
+			attributes: {
+				include: [
+					[ sequelize.literal('(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = Announcement.id LIMIT 1)'), 'media'],   
+			    ],
+			},
+			
+			offset: offset,
+			limit: limit,
+			order: [['id', 'DESC']],
+		});
+
+		const data = {
+			meta: {
+				totalRecords: count,
+			},
+			records: rows,
+		};
+		return {
+			status: 200,
+			data: data,
+			message: 'Records fetched',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
+export const getListGetGpCar = async (request) => {
+	try {
+		const { payload } = request;
+		const limit = 15;
+		const page = payload?.page || 1;
+		const offset = (page - 1) * limit;
+		 
+		const search = payload?.search;
+
+		const whereData = { status: 'ACTIVE', isPremium : 1, category: 'car' };
+
+		 
+		if (search !== '') {
+			// Use sequelize's [Op.or] for a search on title or location
+			whereData[ Op.or] = [
+			  { title: { [ Op.like]: `%${search}%` } },
+			  { location: { [ Op.like]: `%${search}%` } },
+			  { subLocation: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryOrigin: { [ Op.like]: `%${search}%` } },
+			  { gpDeliveryDestination: { [ Op.like]: `%${search}%` } },
+			];
+		  }
+
+		const { count, rows } = await Announcement.findAndCountAll({
+			where: whereData,
+			attributes: {
+				include: [
+					[ sequelize.literal('(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = Announcement.id LIMIT 1)'), 'media'],   
+			    ],
+			},
+			
+			offset: offset,
+			limit: limit,
+			order: [['id', 'DESC']],
+		});
+
+		const data = {
+			meta: {
+				totalRecords: count,
+			},
+			records: rows,
+		};
+		return {
+			status: 200,
+			data: data,
+			message: 'Records fetched',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
 export const myAnnouncementListing = async (request) =>{
 	try {
 		const { payload , user} = request;
@@ -225,4 +489,37 @@ export const myFavoriteAnnouncementListing = async (request) =>{
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 
+}
+//get announcement details
+export const getAnnouncementDetails = async (request) => {
+	try {
+		const { payload } = request;
+		const anouncementDetails = await Announcement.findOne({ where: { id: payload.id } });
+		const { rows:announcementMedias} = await AnnouncementMedia.findAndCountAll({ where: { announcementId: payload.id } });
+
+		return {
+			status: 200,
+			data: anouncementDetails,
+			medias: announcementMedias,
+			message: 'Records fetched',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
+//get announcement media 
+export const getAnnouncementMediaList = async (request) => {
+	    const { payload } = request;
+		const { rows } = await AnnouncementMedia.findAndCountAll({ where: { id: payload.id } });
+		const data = {
+			records: rows,
+		};
+		return {
+			status: 200,
+			data: data,
+			message: 'Records fetched',
+			error: {},
+		};
 }
