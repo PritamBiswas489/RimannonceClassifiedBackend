@@ -9,7 +9,11 @@ import {
 	getListGetGpApartment,
 	getListGetGpDelivery,
 	getListGetGpCar,
-	getListGlobalRand
+	getListGlobalRand,
+	checkAnnouncementFavourite,
+	addAnnouncementFavourite,
+	deleteAnnouncement,
+	closeAnnouncement
 } from '../controllers/announcement.controller.js';
 const router = express.Router();
 import multer from 'multer';
@@ -71,6 +75,52 @@ router.get('/my-listing', async (req, res, next) => {
 		})
 	);
 });
+router.get('/check-announcement-favourite', async (req, res, next) => {
+	res.return(
+		await checkAnnouncementFavourite({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+
+//add announcement
+router.get('/add-announcement-favourite', async (req, res, next) => {
+	res.return(
+		await addAnnouncementFavourite({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+
+router.get('/delete-listing', async (req, res, next) => {
+	res.return(
+		await deleteAnnouncement({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+
+router.get('/close-listing', async (req, res, next) => {
+	res.return(
+		await closeAnnouncement({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+
+
+
+
+
+
 router.get('/my-favorite-listing', async (req, res, next) => {
 	res.return(
 		await myFavoriteAnnouncementListing({
