@@ -101,7 +101,81 @@ export const createAnnouncement = async (request) => {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
+export const updateAnnouncement = async (request) =>{
+	try {
+		const { payload, user, files } = request;
+		 
+		const announcement_id = payload?.id;
+		const announcementData = {
+			title: payload?.title,
+			category: payload?.category,
+			description: payload?.description,
+			locationId: payload?.locationId,
+			location: payload?.location,
+			subLocationId: payload?.subLocationId,
+			subLocation: payload?.subLocation,
+			gpDeliveryOrigin: payload?.gpDeliveryOrigin,
+			gpDeliveryDestination: payload?.gpDeliveryDestination,
+			gpDeliveryDate: payload?.gpDeliveryDate,
+			contactNumber: payload?.contactNumber,
+		};
+		if(payload?.deleteImages){
+			const delImages = JSON.parse(payload?.deleteImages)
+			delImages.forEach(async (dImage,dIndex)=>{
+				await AnnouncementMedia.destroy({ where: { id: dImage } })
+			})
+		}
+        //announcement update
+		await Announcement.update(announcementData, {
+			where: {
+				id: announcement_id,
+			},
+		});
+		const promises = files.map(async (data, index) => {
+			const mediaData = {
+				announcementId: announcement_id,
+				filePath: data.path,
+				fileType: data.fileType,
+			};
+			return await AnnouncementMedia.create(mediaData);
+		});
+		const resolvedData = await Promise.all(promises);
+		const anouncementDetails = await Announcement.findOne({ where: { id: announcement_id },
+			attributes: {
+				include: [
+					[
+						sequelize.literal(
+							'(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = Announcement.id LIMIT 1)'
+						),
+						'media',
+					],
+				],
+			},
+			include: [
+				{
+					model: AnnouncementMedia,
+					as: 'announcementMedias',
+				},
+				 
+			],
+		
+		});
+
+
+		return {
+			status: 200,
+			data: {item: anouncementDetails},
+			message: 'Announcement updated successfully',
+			error: {},
+		};
+	}catch (e) {
+		console.log(e.message);
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
 export const  deleteAnnouncement = async (request) =>{
+	
 	try {
 		const { payload, user } = request;
             //deleteExistingAvatar
@@ -245,6 +319,13 @@ export const listAnnouncement = async (request) => {
 					],
 				],
 			},
+			include: [
+				{
+					model: AnnouncementMedia,
+					as: 'announcementMedias',
+				},
+				 
+			],
 
 			offset: offset,
 			limit: limit,
@@ -568,6 +649,13 @@ export const myAnnouncementListing = async (request) => {
 					],
 				],
 			},
+			include: [
+				{
+					model: AnnouncementMedia,
+					as: 'announcementMedias',
+				},
+				 
+			],
 			offset: offset,
 			limit: limit,
 			order: [['id', 'DESC']],

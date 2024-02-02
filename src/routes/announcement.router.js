@@ -1,6 +1,7 @@
 import express from 'express';
 import { 
-	createAnnouncement, 
+	createAnnouncement,
+	updateAnnouncement, 
 	listAnnouncement,
     myAnnouncementListing, 
 	myFavoriteAnnouncementListing,
@@ -65,6 +66,33 @@ router.post('/create', async (req, res, next) => {
 		);
 	});
 });
+
+router.post('/update', async (req, res, next) => {
+	const files= [];
+	multiUploadImages(req, res, async function (err) {
+		if (req.files.length > 0) {
+			req.files.forEach((fileData, fileIndex) => {
+				console.log(fileData);
+				const filePath = fileData.path;
+				const newFilePath = filePath.replace(/\\/g, '/');
+				const fileNameUsingRegex = newFilePath.match(/\/([^\/]+)$/)[1];
+				const fileType = fileNameUsingRegex.split('_')[0];
+				files.push({path: newFilePath, fileType }); // Push the file path to the images array
+			});
+		}
+			res.return(
+				await updateAnnouncement({
+					payload: { ...req.params, ...req.query, ...req.body },
+					headers: req.headers,
+					user: req.user,
+					files,
+					
+				})
+			);
+
+	})
+
+})
 
 router.get('/my-listing', async (req, res, next) => {
 	res.return(

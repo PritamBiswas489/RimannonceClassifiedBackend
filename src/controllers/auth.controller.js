@@ -9,7 +9,7 @@ const { User, Op, UserAccount, Product, Order, OrderPayment, OrderProduct, Order
 export const getAuthUser = async (request) => {
 	try {
 		const { user } = request;
-		const userDetails = await User.findOne({ where: { id: user.id } });
+		const userDetails = await User.findOne({ where: { id: user.id, status:'ACTIVE' } });
 
 		return {
 			status: 200,

@@ -7,26 +7,18 @@ export default function ContactUs(sequelize, DataTypes) {
 				autoIncrement: true,
 				primaryKey: true,
 			},
-            address: {
+            userId: {
+				type: DataTypes.INTEGER,
+				allowNull: true,
+			},
+            subject: {
 				type: DataTypes.TEXT,
 				allowNull: true,
 			},
-            phoneOne: {
+            message: {
 				type: DataTypes.TEXT,
 				allowNull: true,
-			},
-            phoneTwo: {
-				type: DataTypes.TEXT,
-				allowNull: true,
-			},
-            email: {
-				type: DataTypes.TEXT,
-				allowNull: true,
-			},
-            website: {
-				type: DataTypes.TEXT,
-				allowNull: true,
-			},
+			}, 
 		},
 		{
 			underscored: true,

@@ -48,6 +48,12 @@ export default function User(sequelize, DataTypes) {
 			isPromoted: {
 				type: DataTypes.INTEGER,
 			},
+			status: {
+				type: DataTypes.ENUM,
+				values: ['ACTIVE', 'INACTIVE'],
+				allowNull: true,
+				defaultValue: 'ACTIVE',
+			},
 		},
 		{
 			underscored: true,

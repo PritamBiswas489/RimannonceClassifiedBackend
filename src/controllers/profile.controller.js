@@ -3,10 +3,10 @@ import '../config/environment.js';
 import { default as api } from '../config/apiConfig.js';
 import { hashStr, compareHashedStr, generateToken } from '../libraries/auth.js';
 
-const { User, Op } = db;
+const { User, Op, Announcement, AnnouncementMedia , Favorites, ContactUs} = db;
 import { editProfileValidator } from '../validators/profile.validator.js';
 import { request } from 'express';
-
+import { deleteExistingAvatar } from '../libraries/utility.js';
 export const getProfileDetails = async (request) => {
 	try {
 		const { payload, user } = request;
@@ -157,3 +157,74 @@ export const editProfileBk = async (request) => {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
+export const contactUs =  async (request) => {
+	try {
+		const { payload, user } = request;
+		const subject = payload?.subject;
+		const message = payload?.message;
+
+		const createData = await ContactUs.create({
+			userId:user?.id,
+			subject,
+			message
+		});
+		return {
+			status: 200,
+			data: [],
+			message: 'Message successfully send !',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
+
+export const deleteUserAccount =  async (request) => {
+	try {
+		const { payload, user } = request;
+		const userData = await User.findOne({ where: { id: user?.id },
+			include: [
+				{
+					model: Announcement,
+					as: 'userAnnouncements',
+					include: [
+						{
+							model: AnnouncementMedia,
+							as: 'announcementMedias',
+						},
+					],
+				},
+				 
+			],
+		});
+
+		if(userData.userAnnouncements.length > 0){
+			userData?.userAnnouncements.forEach(async (aData,aIndex)=>{
+				if(aData.announcementMedias.length > 0){
+					aData.announcementMedias.forEach(async (aDataMedia,aIndexMedia)=>{
+							const deleteFile  = await deleteExistingAvatar(aDataMedia.filePath);
+							await AnnouncementMedia.destroy({ where: { id: aDataMedia.id } });
+					})
+				}
+				await Announcement.destroy({ where: { id: aData.id } });
+			})
+		}
+		await Favorites.destroy({ where: { addedBy: userData.id } });
+        await User.destroy({ where: { id: userData?.id } });
+		
+		return {
+			status: 200,
+			data: {delete:1},
+			message: 'Your account deleted permanently',
+			error: {},
+		};
+
+	}catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+
+
+
+}

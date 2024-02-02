@@ -63,15 +63,21 @@ export const login = async (request) => {
 			where: { phone: validatedData?.phone },
 		});
 
+
 		if (!checkUser) {
 			return { status: 400, data: [], error: { message: 'Invalid phone or password !' } };
 		}
+
 
 		const compPass = await compareHashedStr(validatedData?.password, checkUser.password);
 
 		if (!compPass) {
 			return { status: 400, data: [], error: { message: 'Invalid phone or password !' } };
 		}
+		if(checkUser.status === 'INACTIVE'){
+			return { status: 400, data: [], error: { message: 'Invalid phone or password !' } };
+		}
+
 
 		/**
 		 ********** token creation **************
