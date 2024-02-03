@@ -8,6 +8,7 @@ import bodyParser from 'body-parser';
 import { default as apiRouter } from './routes/index.router.js';
 import customReturn from './middlewares/responseBuilder.js';
 import { deleteExistingAvatar } from './libraries/utility.js';
+// import ffmpeg from 'fluent-ffmpeg';
  
 
 
@@ -35,6 +36,30 @@ app.get('/test', (req, res, next) => {
 	console.log('process.env.NODE_ENV :>> ', process.env.NODE_ENV);
 	res.send({ msg: 'server working' });
 });
+
+// app.get('/fluent-ffmpeg-test', (req, res, next) => {
+// 	const inputVideo = '/upload-announcement-files/videos_4-1706269758766-784760595.mp4';
+// 	const outputImage = 'output.jpg';
+
+// 	ffmpeg(inputVideo)
+// 	.output('screenshot.png')
+// 	.noAudio()
+// 	.seek('3:00')
+  
+	 
+// 	.on('error', function(err) {
+// 	  console.log('An error occurred: ' + err.message);
+
+// 	  res.send({ msg: err.message });
+// 	})
+// 	.on('end', function() {
+	   
+// 	  res.send({ msg: 'Processing finished !' });
+// 	})
+// 	.run();
+
+	
+// })
 
  
 
