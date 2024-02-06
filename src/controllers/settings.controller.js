@@ -1,6 +1,6 @@
 import db from '../databases/models/index.js';
 import '../config/environment.js';
-const { Settings, Op } = db;
+const { Settings, Op, Categories, Locations, SubLocations } = db;
 
 export const getSettings = async (request) => {
     try {
@@ -10,6 +10,46 @@ export const getSettings = async (request) => {
         rows.forEach((rowData,rowKey)=>{
             settingData[rowData.keyValue] = rowData.dataValue;
         })
+		const cats = await Categories.findAll({
+			order: [['sortValue', 'ASC']],
+		})
+		const locs =  await Locations.findAll({
+
+			include : {
+				model : SubLocations,
+				as: 'locationSublocation'
+			}
+		})
+		
+
+		const catvalues=[];
+		cats.forEach((cvalue,cindex)=>{
+			catvalues.push({
+				id: cvalue.slugId,
+				name:  cvalue.name,
+				icon: cvalue.icon,
+				iconImage: cvalue.iconImage,
+				price: cvalue.price,
+				isPremium: cvalue.isPremium,
+			  })
+		})
+		const subLocsValues = [];
+
+		locs.forEach((locvalue,locindex)=>{
+			if(locvalue.locationSublocation.length >0 ){
+				subLocsValues.push({
+					location_id: locvalue.id,
+					locations:locvalue?.locationSublocation
+				})
+			}
+
+		})
+
+	
+
+		settingData.categories = catvalues;
+		settingData.locations = locs
+		settingData.subLocations = subLocsValues;
 		return {
 			status: 200,
 			data: settingData,

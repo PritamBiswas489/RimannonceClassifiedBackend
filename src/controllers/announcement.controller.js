@@ -1,7 +1,7 @@
 import db from '../databases/models/index.js';
 import { default as api } from '../config/apiConfig.js';
 import { request } from 'express';
-const { Announcement, User, AnnouncementMedia, Favorites, Op, Settings, sequelize } = db;
+const { Announcement, User, AnnouncementMedia,Categories, Favorites, Op, Settings, sequelize } = db;
 import { deleteExistingAvatar } from '../libraries/utility.js';
 
 export const createAnnouncement = async (request) => {
@@ -35,22 +35,8 @@ export const createAnnouncement = async (request) => {
 		if (parseInt(payload?.isPremium) === 1) {
 			//============= get catgeory post amount =================//
 			let postCategoryAmount = 0;
-			if (payload?.category === 'car') {
-				const getSettings = await Settings.findOne({ where: { keyValue: 'car_premium_price' } });
-				postCategoryAmount = parseFloat(getSettings.dataValue);
-			}
-			if (payload?.category === 'apartment') {
-				const getSettings = await Settings.findOne({ where: { keyValue: 'apartment_premium_price' } });
-				postCategoryAmount = parseFloat(getSettings.dataValue);
-			}
-			if (payload?.category === 'gp_delivery') {
-				const getSettings = await Settings.findOne({ where: { keyValue: 'gb_delivery_premium_price' } });
-				postCategoryAmount = parseFloat(getSettings.dataValue);
-			}
-			if (payload?.category === 'land_sale') {
-				const getSettings = await Settings.findOne({ where: { keyValue: 'land_sale_premium_price' } });
-				postCategoryAmount = parseFloat(getSettings.dataValue);
-			}
+			    const getSettings = await Categories.findOne({ where: { slugId: payload?.category } });
+				postCategoryAmount = parseFloat(getSettings?.price);
 			//============= checking user have amount to post =======//
 			if (userWalletAmount < postCategoryAmount) {
 				return { status: 500, data: { requestWallet: 1 }, error: { message: `Your waller need  minimum $${postCategoryAmount} to post this announcement` } };
@@ -348,14 +334,80 @@ export const listAnnouncement = async (request) => {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
+export const getListPremium =   async (request) => {
+	try {
+		const { payload } = request;
+		const limit = 15;
+		const page = payload?.page || 1;
+		const cat = payload?.cat;
+		const locationids = JSON.parse(payload?.locationids);
+		const search = payload?.search;
+		const offset = (page - 1) * limit;
+		console.log(locationids);
+
+		const whereData = { status: 'ACTIVE', isPremium: 1 , category: { [Op.ne]: 'gp_delivery'} };
+		if (cat !== '') {
+			whereData.category = cat;
+		}
+		if (search !== '') {
+			// Use sequelize's [Op.or] for a search on title or location
+			whereData[Op.or] = [
+				{ title: { [Op.like]: `%${search}%` } },
+				{ location: { [Op.like]: `%${search}%` } },
+				{ subLocation: { [Op.like]: `%${search}%` } },
+				{ gpDeliveryOrigin: { [Op.like]: `%${search}%` } },
+				{ gpDeliveryDestination: { [Op.like]: `%${search}%` } },
+			];
+		}
+		if (locationids && locationids.length > 0) {
+			// Include condition for locationids
+			whereData.locationId = { [Op.in]: locationids };
+		  }
+		const { count, rows } = await Announcement.findAndCountAll({
+			where: whereData,
+			attributes: {
+				include: [
+					[
+						sequelize.literal(
+							'(SELECT file_path FROM announcement_medias WHERE file_type = "images" AND announcement_medias.announcement_id = Announcement.id LIMIT 1)'
+						),
+						'media',
+					],
+				],
+			},
+
+			offset: offset,
+			limit: limit,
+			order: [['id', 'DESC']],
+		});
+
+		const data = {
+			meta: {
+				totalRecords: count,
+			},
+			records: rows,
+		};
+		return {
+			status: 200,
+			data: data,
+			message: 'Records fetched',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
 export const getListGlobal = async (request) => {
 	try {
 		const { payload } = request;
 		const limit = 15;
 		const page = payload?.page || 1;
 		const cat = payload?.cat;
+		const locationids = JSON.parse(payload?.locationids);
 		const search = payload?.search;
 		const offset = (page - 1) * limit;
+		console.log(locationids);
 
 		const whereData = { status: 'ACTIVE', isPremium: 0 };
 		if (cat !== '') {
@@ -371,6 +423,10 @@ export const getListGlobal = async (request) => {
 				{ gpDeliveryDestination: { [Op.like]: `%${search}%` } },
 			];
 		}
+		if (locationids && locationids.length > 0) {
+			// Include condition for locationids
+			whereData.locationId = { [Op.in]: locationids };
+		  }
 		const { count, rows } = await Announcement.findAndCountAll({
 			where: whereData,
 			attributes: {

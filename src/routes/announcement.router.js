@@ -7,6 +7,7 @@ import {
 	myFavoriteAnnouncementListing,
 	getAnnouncementDetails,
 	getListGlobal,
+	getListPremium,
 	getListGetGpApartment,
 	getListGetGpDelivery,
 	getListGetGpCar,
@@ -171,6 +172,15 @@ router.get('/list-announcement', async (req, res, next) => {
 router.get('/list-get-global', async (req, res, next) => {
 	res.return(
 		await getListGlobal({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+router.get('/list-get-premium', async (req, res, next) => {
+	res.return(
+		await getListPremium({
 			payload: { ...req.params, ...req.query, ...req.body },
 			headers: req.headers,
 			user: req.user,
