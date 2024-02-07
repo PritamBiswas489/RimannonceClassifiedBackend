@@ -21,6 +21,7 @@ export const createAnnouncement = async (request) => {
 			gpDeliveryOrigin: payload?.gpDeliveryOrigin,
 			gpDeliveryDestination: payload?.gpDeliveryDestination,
 			gpDeliveryDate: payload?.gpDeliveryDate,
+			phoneCountryCode:payload?.phoneCountryCode,
 			contactNumber: payload?.contactNumber,
 			isPremium: payload?.isPremium || 0,
 			createdBy: user?.id || 0,
@@ -103,6 +104,7 @@ export const updateAnnouncement = async (request) =>{
 			gpDeliveryOrigin: payload?.gpDeliveryOrigin,
 			gpDeliveryDestination: payload?.gpDeliveryDestination,
 			gpDeliveryDate: payload?.gpDeliveryDate,
+			phoneCountryCode:payload?.phoneCountryCode,
 			contactNumber: payload?.contactNumber,
 		};
 		if(payload?.deleteImages){

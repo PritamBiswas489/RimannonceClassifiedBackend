@@ -114,6 +114,7 @@ export const register = async (request) => {
 		const data = {
 			name: payload.name,
 			email: payload.email,
+			
 			phone: payload.phone,
 			password: payload.password,
 			confirmPassword: payload.confirmPassword,
@@ -129,6 +130,7 @@ export const register = async (request) => {
 			name: validatedData.name ?? validatedData.userName,
 			email: validatedData.email,
 			phone: validatedData.phone,
+			phoneCountryCode:payload.phoneCountryCode,
 			password: await hashStr(validatedData?.password),
 			role: validatedData?.role ?? 'USER',
 		};

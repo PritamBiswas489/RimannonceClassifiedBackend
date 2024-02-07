@@ -16,6 +16,10 @@ export default function User(sequelize, DataTypes) {
 				allowNull: true,
 				unique: true,
 			},
+			phoneCountryCode:{
+				type: DataTypes.STRING,
+				allowNull: true,
+			},
 			phone: {
 				type: DataTypes.STRING,
 				allowNull: true,

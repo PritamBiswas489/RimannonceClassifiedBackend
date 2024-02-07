@@ -54,6 +54,10 @@ export default function Announcement(sequelize, DataTypes) {
 				type: DataTypes.DATE,
 				allowNull: true,
 			},
+			phoneCountryCode:{
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
 			contactNumber: {
 				type: DataTypes.TEXT,
 				allowNull: true,
