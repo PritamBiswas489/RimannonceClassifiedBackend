@@ -15,7 +15,8 @@ import {
 	checkAnnouncementFavourite,
 	addAnnouncementFavourite,
 	deleteAnnouncement,
-	closeAnnouncement
+	closeAnnouncement,
+	reportAnnouncement
 } from '../controllers/announcement.controller.js';
 const router = express.Router();
 import multer from 'multer';
@@ -138,6 +139,17 @@ router.get('/delete-listing', async (req, res, next) => {
 router.get('/close-listing', async (req, res, next) => {
 	res.return(
 		await closeAnnouncement({
+			payload: { ...req.params, ...req.query, ...req.body },
+			headers: req.headers,
+			user: req.user,
+		})
+	);
+});
+
+
+router.post('/report-listing', async (req, res, next) => {
+	res.return(
+		await reportAnnouncement({
 			payload: { ...req.params, ...req.query, ...req.body },
 			headers: req.headers,
 			user: req.user,

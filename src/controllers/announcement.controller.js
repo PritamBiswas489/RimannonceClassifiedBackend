@@ -1,7 +1,7 @@
 import db from '../databases/models/index.js';
 import { default as api } from '../config/apiConfig.js';
 import { request } from 'express';
-const { Announcement, User, AnnouncementMedia,Categories, Favorites, Op, Settings, sequelize } = db;
+const { Announcement, User, AnnouncementMedia,Categories, Favorites,Report, Op, Settings, sequelize } = db;
 import { deleteExistingAvatar } from '../libraries/utility.js';
 
 export const createAnnouncement = async (request) => {
@@ -181,6 +181,34 @@ export const  deleteAnnouncement = async (request) =>{
 			status: 200,
 			data: {delete:1},
 			message: 'Record deleted successfully !',
+			error: {},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+
+}
+export const reportAnnouncement = async (request)=>{
+	try {
+		const { payload, user } = request;
+		const check = await Report.findOne({
+			where: {
+				userId:user?.id,
+			     announcementId:payload?.id,
+			},
+		});
+		if(check?.id){
+			  return { status: 500, data: [], error: { message: 'You already submit  report!' } };	
+		}
+		 await Report.create({
+			userId:user?.id,
+			announcementId:payload?.id,
+			reason:payload?.reason,
+		});	 
+		return {
+			status: 200,
+			data: {submit:1},
+			message: 'Report submitted successfully !',
 			error: {},
 		};
 	} catch (e) {

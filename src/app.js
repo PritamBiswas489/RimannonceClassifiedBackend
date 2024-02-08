@@ -36,6 +36,11 @@ app.get('/test', (req, res, next) => {
 	console.log('process.env.NODE_ENV :>> ', process.env.NODE_ENV);
 	res.send({ msg: 'server working' });
 });
+app.get('/share/:id', (req, res, next) => {
+	const payload = { ...req.params, ...req.query, ...req.body };
+	const id = payload?.id;
+	res.redirect(`rimannonceclassifiedapp://announcement/details/${id}`) 
+});
 
 // app.get('/fluent-ffmpeg-test', (req, res, next) => {
 // 	const inputVideo = '/upload-announcement-files/videos_4-1706269758766-784760595.mp4';
