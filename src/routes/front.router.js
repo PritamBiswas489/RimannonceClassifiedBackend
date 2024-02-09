@@ -2,7 +2,8 @@ import '../config/environment.js';
 import express from 'express';
 const router = express.Router();
 import { 
-	login, 
+	login,
+	adminLogin, 
 	loginUsingUserId, 
 	register, 
 	checkUserNameAvailability, 
@@ -19,6 +20,11 @@ import { getSettings } from  '../controllers/settings.controller.js';
 router.post('/login', async (req, res, next) => {
 	res.send(await login({ payload: { ...req.params, ...req.query, ...req.body }, headers: req.headers }));
 });
+
+router.post('/admin-login', async (req, res, next) => {
+	res.send(await adminLogin({ payload: { ...req.params, ...req.query, ...req.body }, headers: req.headers }));
+});
+
 
 
 

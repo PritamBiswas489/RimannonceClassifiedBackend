@@ -35,7 +35,7 @@ export const loginUsingUserId = async (request) => {
 
 		return {
 			status: 200,
-			message: 'Login successful !',
+			message: 'Login successfull !',
 			data: {
 				accessToken,
 				refreshToken,
@@ -78,6 +78,55 @@ export const login = async (request) => {
 			return { status: 400, data: [], error: { message: 'Invalid phone or password !' } };
 		}
 
+
+		/**
+		 ********** token creation **************
+		 */
+		const jwtPayload = {
+			id: checkUser.id,
+			email: checkUser.email,
+			role: checkUser.role,
+			name: checkUser.name,
+			phone: checkUser.phone,
+		};
+
+		const accessToken = await generateToken(jwtPayload, JWT_ALGO, ACCESS_TOKEN_SECRET_KEY, Number(ACCESS_TOKEN_EXPIRES_IN));
+		const refreshToken = await generateToken(jwtPayload, JWT_ALGO, REFRESH_TOKEN_SECRET_KEY, Number(REFRESH_TOKEN_EXPIRES_IN));
+
+		return {
+			status: 200,
+			message: 'Login successful !',
+			data: {
+				accessToken,
+				refreshToken,
+				user: checkUser
+			},
+		};
+	} catch (e) {
+		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
+	}
+};
+export const adminLogin = async (request) => {
+	try {
+		const { payload } = request;
+		
+		const checkUser = await User.findOne({
+			where: { email: payload?.username , role : 'ADMIN'},
+		});
+
+		if (!checkUser) {
+			return { status: 400, data: [], error: { message: 'Invalid phone or password !' } };
+		}
+
+
+		const compPass = await compareHashedStr(payload?.password, checkUser.password);
+
+		if (!compPass) {
+			return { status: 400, data: [], error: { message: 'Invalid phone or password !' } };
+		}
+		if(checkUser.status === 'INACTIVE'){
+			return { status: 400, data: [], error: { message: 'Invalid phone or password !' } };
+		}
 
 		/**
 		 ********** token creation **************

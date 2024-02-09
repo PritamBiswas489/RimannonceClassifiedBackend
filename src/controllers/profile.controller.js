@@ -69,6 +69,7 @@ export const editProfile = async (request) => {
 			name: validatedData.name,
 			email: validatedData.email,
 			phone: validatedData.phone,
+			language:payload?.language,
 			phoneCountryCode:payload.phoneCountryCode,
 		};
 		let successMessage = 'Profile updated successfully!';

@@ -1,7 +1,7 @@
 import db from '../databases/models/index.js';
 import { default as api } from '../config/apiConfig.js';
 import { request } from 'express';
-const { Announcement, User, AnnouncementMedia,Categories, Favorites,Report, Op, Settings, sequelize } = db;
+const { Announcement, User, AnnouncementMedia,Categories, Favorites,Report, Op, Transactions, Settings, sequelize } = db;
 import { deleteExistingAvatar } from '../libraries/utility.js';
 
 export const createAnnouncement = async (request) => {
@@ -32,20 +32,18 @@ export const createAnnouncement = async (request) => {
 
 		const { walletAmount } = getUserWalletAmount;
 		let userWalletAmount = parseFloat(walletAmount);
-
+		let postCategoryAmount = 0;
 		if (parseInt(payload?.isPremium) === 1) {
-			//============= get catgeory post amount =================//
-			let postCategoryAmount = 0;
+			    //============= get catgeory post amount =================//
 			    const getSettings = await Categories.findOne({ where: { slugId: payload?.category } });
 				postCategoryAmount = parseFloat(getSettings?.price);
-			//============= checking user have amount to post =======//
-			if (userWalletAmount < postCategoryAmount) {
-				return { status: 500, data: { requestWallet: 1 }, error: { message: `Your waller need  minimum $${postCategoryAmount} to post this announcement` } };
-			}
+				//============= checking user have amount to post =======//
+				if (userWalletAmount < postCategoryAmount) {
+					return { status: 500, data: { requestWallet: 1 }, error: { message: `Your waller need  minimum $${postCategoryAmount} to post this announcement` } };
+				}
+				//============ user wallet amount after deduct =======================//
 
-			//============ user wallet amount after deduct =======================//
-
-			userWalletAmount = userWalletAmount - postCategoryAmount;
+				userWalletAmount = userWalletAmount - postCategoryAmount;
 		}
 
 		const createData = await Announcement.create(announcementData);
@@ -60,6 +58,11 @@ export const createAnnouncement = async (request) => {
 					}
 				);
 				///================= Insert into transaction table ====================////
+				Transactions.create({
+					userId:user?.id,
+					announcementId: createData?.id,
+					amount: postCategoryAmount
+				})
 			}
 
 			const promises = files.map(async (data, index) => {
