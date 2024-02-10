@@ -11,6 +11,14 @@ export default function SubLocations(sequelize, DataTypes) {
 				type: DataTypes.TEXT,
 				allowNull: true,
 			},
+			frName: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
+			arName: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
             locationId: {
 				type: DataTypes.INTEGER,
 				allowNull: true,

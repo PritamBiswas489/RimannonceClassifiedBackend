@@ -27,6 +27,8 @@ export const getSettings = async (request) => {
 			catvalues.push({
 				id: cvalue.slugId,
 				name:  cvalue.name,
+				frName:  cvalue.frName,
+				arName:  cvalue.arName,
 				icon: cvalue.icon,
 				iconImage: cvalue.iconImage,
 				price: cvalue.price,

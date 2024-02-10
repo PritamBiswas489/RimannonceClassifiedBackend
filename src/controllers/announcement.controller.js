@@ -1,8 +1,9 @@
 import db from '../databases/models/index.js';
 import { default as api } from '../config/apiConfig.js';
 import { request } from 'express';
-const { Announcement, User, AnnouncementMedia,Categories, Favorites,Report, Op, Transactions, Settings, sequelize } = db;
+const { Announcement, User, Locations,SubLocations, AnnouncementMedia,Categories, Favorites,Report, Op, Transactions, Settings, sequelize } = db;
 import { deleteExistingAvatar } from '../libraries/utility.js';
+ 
 
 export const createAnnouncement = async (request) => {
 	try {
@@ -408,6 +409,17 @@ export const getListPremium =   async (request) => {
 					],
 				],
 			},
+			include: [
+				{
+					model: Locations,
+					as: 'announcementLocation',
+				},
+				{
+					model: SubLocations,
+					as: 'announcementSubLocation',
+				},
+				 
+			],
 
 			offset: offset,
 			limit: limit,
@@ -472,6 +484,18 @@ export const getListGlobal = async (request) => {
 					],
 				],
 			},
+			include: [
+				{
+					model: Locations,
+					as: 'announcementLocation',
+				},
+				{
+					model: SubLocations,
+					as: 'announcementSubLocation',
+				},
+				 
+			],
+
 
 			offset: offset,
 			limit: limit,
@@ -743,8 +767,17 @@ export const myAnnouncementListing = async (request) => {
 					model: AnnouncementMedia,
 					as: 'announcementMedias',
 				},
+				{
+					model: Locations,
+					as: 'announcementLocation',
+				},
+				{
+					model: SubLocations,
+					as: 'announcementSubLocation',
+				},
 				 
 			],
+			 
 			offset: offset,
 			limit: limit,
 			order: [['id', 'DESC']],
@@ -794,7 +827,16 @@ export const myFavoriteAnnouncementListing = async (request) => {
 							],
 						],
 					},
+					include: [{
+						model: Locations,
+						as: 'announcementLocation',
+					},
+					{
+						model: SubLocations,
+						as: 'announcementSubLocation',
+					}],
 				},
+				
 			],
 		});
 
@@ -818,7 +860,18 @@ export const myFavoriteAnnouncementListing = async (request) => {
 export const getAnnouncementDetails = async (request) => {
 	try {
 		const { payload } = request;
-		const anouncementDetails = await Announcement.findOne({ where: { id: payload.id } });
+		const anouncementDetails = await Announcement.findOne({ where: { id: payload.id },include: [
+			 
+			{
+				model: Locations,
+				as: 'announcementLocation',
+			},
+			{
+				model: SubLocations,
+				as: 'announcementSubLocation',
+			},
+			 
+		], });
 		const { rows: announcementMedias } = await AnnouncementMedia.findAndCountAll({ where: { announcementId: payload.id } });
 
 		return {

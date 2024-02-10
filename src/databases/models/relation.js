@@ -26,6 +26,16 @@ const relation = (db) => {
 		as: 'announcementMedias',
 	});
 
+	Announcement.belongsTo(Locations, {
+		foreignKey: 'locationId',
+		as: 'announcementLocation',
+	});
+
+	Announcement.belongsTo(SubLocations, {
+		foreignKey: 'subLocationId',
+		as: 'announcementSubLocation',
+	});
+
 	Favorites.belongsTo(Announcement, {
 		foreignKey: 'announcementId',
 		as: 'favoritesAnnouncement',

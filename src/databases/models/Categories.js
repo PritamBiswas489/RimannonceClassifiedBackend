@@ -11,6 +11,14 @@ export default function Categories(sequelize, DataTypes) {
 				type: DataTypes.TEXT,
 				allowNull: true,
 			},
+			frName: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
+			arName: {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
             slugId:{
 				type: DataTypes.TEXT,
 				allowNull: true,
