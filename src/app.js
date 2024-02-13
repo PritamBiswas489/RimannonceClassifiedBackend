@@ -21,6 +21,7 @@ const publicDir = NODE_ENV === 'development' ? pathResolve(pathJoin(dirname('./'
 const app = express();
 app.use(
 	cors({
+		origin: '*',
 		exposedHeaders: ['accesstoken', 'refreshtoken'],
 	})
 );
@@ -67,9 +68,33 @@ app.get('/share/:id', (req, res, next) => {
 // })
 
  
+app.use((req, res, next) => {
+	res.setHeader("Access-Control-Allow-Origin", "*");
+	res.setHeader("Access-Control-Allow-Methods", "POST, GET, PUT");
+	res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+	res.header("Cross-Origin-Resource-Policy", "cross-origin")
+	next();
+  })
 
+
+ 
+ 
 app.use('/uploads', express.static('uploads'));
+ 
 app.use('/upload-announcement-files', express.static('upload-announcement-files'));
+
+app.get('/proxy-image', async (req, res) => {
+	try {
+	  const imageUrl = req.query.url;
+	  const response = await fetch(imageUrl);
+	  const imageBuffer = await response.buffer(); // Get image as a buffer
+	  res.set('Content-Type', response.headers.get('Content-Type'));
+	  res.send(imageBuffer); // Send image buffer back to client
+	} catch (error) {
+	  res.status(500).json({ error: 'Internal Server Error' });
+	}
+  });
+  
 
 app.use('/api', apiRouter);
 

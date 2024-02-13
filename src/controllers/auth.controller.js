@@ -195,7 +195,7 @@ export const addAmountToUserWallet = async (request) => {
 				}
 			);
 			const check = await User.findOne({ where: { id: user_id } });
-			return { status: 500, data: check };
+			return { status: 200, data: check };
 		}
 
        return { status: 500, data: [], error: { message: 'User not found !' } };

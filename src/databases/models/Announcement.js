@@ -16,6 +16,10 @@ export default function Announcement(sequelize, DataTypes) {
 				type: DataTypes.STRING,
 				allowNull: true,
 			},
+			price : {
+				type:DataTypes.DECIMAL(10, 2),
+				defaultValue:0,
+			},
 			category: {
 				type: DataTypes.STRING,
 				allowNull: true,

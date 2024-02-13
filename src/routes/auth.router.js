@@ -20,6 +20,7 @@ import multer from 'multer';
 import path from 'path';
 import { deleteExistingAvatar } from '../libraries/utility.js';
 import announcementRouter from './announcement.router.js';
+ 
 
 
 
@@ -36,6 +37,8 @@ router.get('/get-auth-user', async (req, res, next) => {
 		})
 	);
 });
+
+
 
 
 const storage = multer.diskStorage({

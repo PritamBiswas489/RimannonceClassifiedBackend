@@ -13,6 +13,7 @@ export const createAnnouncement = async (request) => {
 		}
 		const announcementData = {
 			title: payload?.title,
+			price: payload?.price,
 			category: payload?.category,
 			description: payload?.description,
 			locationId: payload?.locationId,
@@ -99,6 +100,7 @@ export const updateAnnouncement = async (request) =>{
 		const announcement_id = payload?.id;
 		const announcementData = {
 			title: payload?.title,
+			price: payload?.price,
 			category: payload?.category,
 			description: payload?.description,
 			locationId: payload?.locationId,
