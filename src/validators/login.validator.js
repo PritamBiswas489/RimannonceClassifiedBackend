@@ -8,7 +8,6 @@ const commonValidators = {
 	name: joi.string(),
 	phone: joi.string(),
 	password: joi.string(),
-	confirmPassword: joi.string().required(),
 	role: joi.string(),
 };
 
@@ -24,10 +23,6 @@ export const registrationValidator = async (data) => {
 					'string.pattern.base': 'Password must be at least eight characters, one uppercase letter, one lowercase letter, one number and one special character.',
 				})
 				.required(),
-			confirmPassword: commonValidators.confirmPassword.valid(data.password).messages({
-				'any.only': 'confirm password does not match',
-				'any.required': 'confirm password is required',
-			}),
 			role: commonValidators.role.optional(),
 		});
 		const validatedData = await schema.validateAsync(data);

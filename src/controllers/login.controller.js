@@ -163,10 +163,8 @@ export const register = async (request) => {
 		const data = {
 			name: payload.name,
 			email: payload.email,
-			 
 			phone: payload.phone,
 			password: payload.password,
-			confirmPassword: payload.confirmPassword,
 			role: payload.role,
 		};
 
@@ -260,16 +258,25 @@ export const sendForgetPasswordEmail = async (request) => {
 			html: htmlToSend,
 			attachments: [
 				{
-					filename: 'logo.png',
+					filename: 'logo.jpg',
 					path:
 						NODE_ENV === 'development'
-							? pathResolve(pathJoin(dirname('./'), 'public/images/logo.png'))
-							: pathResolve(pathJoin(dirname('./'), '..', 'public/images/logo.png')),
+							? pathResolve(pathJoin(dirname('./'), 'public/images/logo.jpg'))
+							: pathResolve(pathJoin(dirname('./'), '..', 'public/images/logo.jpg')),
 					cid: 'unique@logo', 
 				},
 			],
 		};
 		connection.sendMail(mailOptions);
+		//
+		await User.update(
+			{ password: await hashStr(randomPassword), },
+			{
+				where: {
+					id: checkEmail.id,
+				},
+			}
+		);
 		return { status: 200, data: { randomPassword: randomPassword }, message: 'New password send to your email address.!' };
 	}catch (e) {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
@@ -307,11 +314,11 @@ export const sendEmailOtp = async (request) => {
 			html: htmlToSend,
 			attachments: [
 				{
-					filename: 'logo.png',
+					filename: 'logo.jpg',
 					path:
 						NODE_ENV === 'development'
-							? pathResolve(pathJoin(dirname('./'), 'public/images/logo.png'))
-							: pathResolve(pathJoin(dirname('./'), '..', 'public/images/logo.png')),
+							? pathResolve(pathJoin(dirname('./'), 'public/images/logo.jpg'))
+							: pathResolve(pathJoin(dirname('./'), '..', 'public/images/logo.jpg')),
 					cid: 'unique@logo', //same cid value as in the html img src
 				},
 			],

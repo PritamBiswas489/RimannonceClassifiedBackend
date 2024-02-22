@@ -2,9 +2,9 @@
 	"name": "nodetemplate",
 	"version": "1.0.0",
 	"description": "",
-	"main": "./bin/www.js",
+	"main": "server.js",
 	"scripts": {
-		"dev": "nodemon ./bin/www.js",
+		"dev": "nodemon server.js",
 		"format": "prettier --write ."
 	},
 	"author": "Aqualeaf",

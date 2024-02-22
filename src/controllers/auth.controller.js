@@ -4,7 +4,7 @@ const { STRIPE_API_KEY, STRIPE_SECRET_KEY, FRONT_BASE_URL } = process.env;
 import Stripe from 'stripe';
 const stripe = Stripe(STRIPE_SECRET_KEY);
 
-const { User, Op, UserAccount, Product, Order, OrderPayment, OrderProduct, OrderShipping, Favorite } = db;
+const { User, Op, UserAccount, Product, Order, OrderPayment, OrderProduct, OrderShipping, Favorite, TransactionsAdmin } = db;
 
 export const getAuthUser = async (request) => {
 	try {
@@ -187,13 +187,20 @@ export const addAmountToUserWallet = async (request) => {
 			let amtData  = parseFloat(userDetails?.walletAmount) + parseFloat(amt)
 
 		    await User.update(
-				{ walletAmount: amtData },
+				{ walletAmount: parseFloat(amt)  },
 				{
 					where: {
 						id: user_id,
 					},
 				}
 			);
+
+			await TransactionsAdmin.create({ 
+				userId: user_id, 
+				amount: parseFloat(amt) 
+			});
+
+
 			const check = await User.findOne({ where: { id: user_id } });
 			return { status: 200, data: check };
 		}

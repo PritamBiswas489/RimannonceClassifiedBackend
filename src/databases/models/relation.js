@@ -1,5 +1,5 @@
 const relation = (db) => {
-	const { Favorites, Announcement, AnnouncementMedia, User, Locations, SubLocations , ContactUs,         Ticket, TicketConversation, TicketType,    Blog, Comment,    Notification } = db;
+	const { Favorites, Announcement, Transactions, AnnouncementMedia, User, Locations, SubLocations , ContactUs,         Ticket, TicketConversation, TicketType,    Blog, Comment,    Notification } = db;
 	 
 	User.hasMany(Announcement, {
 		foreignKey: 'createdBy',
@@ -19,6 +19,10 @@ const relation = (db) => {
 	Announcement.belongsTo(User, {
 		foreignKey: 'createdBy',
 		as: 'announcementUser',
+	});
+	Transactions.belongsTo(Announcement, {
+		foreignKey: 'announcementId',
+		as: 'transactionAnnouncement',
 	});
 
 	Announcement.hasMany(AnnouncementMedia, {
