@@ -25,6 +25,15 @@ export default function AnnouncementMedia(sequelize, DataTypes) {
 				type: DataTypes.TEXT,
 				allowNull: true,
 			},
+			fileMimeType : {
+				type: DataTypes.TEXT,
+				allowNull: true,
+			},
+			isConverted:{
+				type: DataTypes.INTEGER,
+                defaultValue:0,
+				allowNull: true,
+			}
 		},
 		{
 			underscored: true,

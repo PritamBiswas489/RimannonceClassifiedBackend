@@ -1,5 +1,6 @@
 import handlebars from 'handlebars';
 import fs from 'fs';
+import {fileTypeFromFile} from 'file-type';
 
 
 export const deleteExistingAvatar = async (filePath) =>{
@@ -74,4 +75,15 @@ export function generateRandomPassword() {
 	return password;
   }
   
+
+export const isMOVFile = async (filePath) => {
+	 const getFIleType = await fileTypeFromFile(filePath);
+	 if(getFIleType?.mime === 'video/quicktime'){
+       return true;
+	 }else{
+       return false;
+	 }
+	 //video/quicktime
+
+}
  

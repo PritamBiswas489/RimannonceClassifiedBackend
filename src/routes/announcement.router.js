@@ -46,6 +46,7 @@ const storage = multer.diskStorage({
 var multiUploadImages = multer({ storage: storage }).any('images');
 router.post('/create', async (req, res, next) => {
 	const files= [];
+	let hasiPhoneMobileVideos = false;
 	multiUploadImages(req, res, async function (err) {
 		if (req.files.length > 0) {
 			req.files.forEach((fileData, fileIndex) => {
@@ -54,7 +55,11 @@ router.post('/create', async (req, res, next) => {
 				const newFilePath = filePath.replace(/\\/g, '/');
 				const fileNameUsingRegex = newFilePath.match(/\/([^\/]+)$/)[1];
 				const fileType = fileNameUsingRegex.split('_')[0];
-				files.push({path: newFilePath, fileType }); // Push the file path to the images array
+				const fileMimeType = fileData.mimetype;
+				if(fileData.mimetype === 'video/quicktime'){
+					hasiPhoneMobileVideos = true;
+				}
+				files.push({path: newFilePath, fileType, fileMimeType }); // Push the file path to the images array
 			});
 		}
 		res.return(
@@ -63,6 +68,7 @@ router.post('/create', async (req, res, next) => {
 				headers: req.headers,
 				user: req.user,
 				files,
+				hasiPhoneMobileVideos
 				 
 			})
 		);
@@ -71,6 +77,7 @@ router.post('/create', async (req, res, next) => {
 
 router.post('/update', async (req, res, next) => {
 	const files= [];
+	let hasiPhoneMobileVideos = false;
 	multiUploadImages(req, res, async function (err) {
 		if (req.files.length > 0) {
 			req.files.forEach((fileData, fileIndex) => {
@@ -79,7 +86,11 @@ router.post('/update', async (req, res, next) => {
 				const newFilePath = filePath.replace(/\\/g, '/');
 				const fileNameUsingRegex = newFilePath.match(/\/([^\/]+)$/)[1];
 				const fileType = fileNameUsingRegex.split('_')[0];
-				files.push({path: newFilePath, fileType }); // Push the file path to the images array
+				const fileMimeType = fileData.mimetype;
+				if(fileData.mimetype === 'video/quicktime'){
+					hasiPhoneMobileVideos = true;
+				}
+				files.push({path: newFilePath, fileType, fileMimeType }); // Push the file path to the images array
 			});
 		}
 			res.return(
@@ -88,6 +99,7 @@ router.post('/update', async (req, res, next) => {
 					headers: req.headers,
 					user: req.user,
 					files,
+					hasiPhoneMobileVideos
 					
 				})
 			);

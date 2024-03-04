@@ -1,13 +1,13 @@
 import db from '../databases/models/index.js';
 import { default as api } from '../config/apiConfig.js';
 import { request } from 'express';
-const { Announcement, User, Locations,SubLocations, AnnouncementMedia,Categories, Favorites,Report, Op, Transactions, Settings, sequelize } = db;
+const { Announcement, User, Locations, SubLocations, AnnouncementMedia, Categories, Favorites, Report, Op, Transactions, Settings, sequelize } = db;
 import { deleteExistingAvatar } from '../libraries/utility.js';
- 
+import { processMovConvertProcess } from '../services/videoencoding.service.js';
 
 export const createAnnouncement = async (request) => {
 	try {
-		const { payload, user, files } = request;
+		const { payload, user, files, hasiPhoneMobileVideos } = request;
 		if (files.length === 0) {
 			return { status: 500, data: [], error: { message: 'Upload some media for this announcement!' } };
 		}
@@ -18,17 +18,18 @@ export const createAnnouncement = async (request) => {
 			description: payload?.description,
 			locationId: payload?.locationId,
 			location: payload?.location,
-			subLocationId: payload?.subLocationId,
+			subLocationId: parseInt(payload?.subLocationId) || 0,
 			subLocation: payload?.subLocation,
 			gpDeliveryOrigin: payload?.gpDeliveryOrigin,
 			gpDeliveryDestination: payload?.gpDeliveryDestination,
 			gpDeliveryDate: payload?.gpDeliveryDate,
-			phoneCountryCode:payload?.phoneCountryCode,
+			phoneCountryCode: payload?.phoneCountryCode,
 			contactNumber: payload?.contactNumber,
 			isPremium: payload?.isPremium || 0,
 			createdBy: user?.id || 0,
 		};
 		//============= get user wallet amount  =================//
+		console.log(announcementData);
 
 		const getUserWalletAmount = await User.findOne({ where: { id: user.id }, attributes: ['walletAmount'] });
 
@@ -36,16 +37,16 @@ export const createAnnouncement = async (request) => {
 		let userWalletAmount = parseFloat(walletAmount);
 		let postCategoryAmount = 0;
 		if (parseInt(payload?.isPremium) === 1) {
-			    //============= get catgeory post amount =================//
-			    const getSettings = await Categories.findOne({ where: { slugId: payload?.category } });
-				postCategoryAmount = parseFloat(getSettings?.price);
-				//============= checking user have amount to post =======//
-				if (userWalletAmount < postCategoryAmount) {
-					return { status: 500, data: { requestWallet: 1 }, error: { message: `Your waller need  minimum $${postCategoryAmount} to post this announcement` } };
-				}
-				//============ user wallet amount after deduct =======================//
+			//============= get catgeory post amount =================//
+			const getSettings = await Categories.findOne({ where: { slugId: payload?.category } });
+			postCategoryAmount = parseFloat(getSettings?.price);
+			//============= checking user have amount to post =======//
+			if (userWalletAmount < postCategoryAmount) {
+				return { status: 500, data: { requestWallet: 1 }, error: { message: `Your waller need  minimum $${postCategoryAmount} to post this announcement` } };
+			}
+			//============ user wallet amount after deduct =======================//
 
-				userWalletAmount = userWalletAmount - postCategoryAmount;
+			userWalletAmount = userWalletAmount - postCategoryAmount;
 		}
 
 		const createData = await Announcement.create(announcementData);
@@ -61,10 +62,10 @@ export const createAnnouncement = async (request) => {
 				);
 				///================= Insert into transaction table ====================////
 				Transactions.create({
-					userId:user?.id,
+					userId: user?.id,
 					announcementId: createData?.id,
-					amount: postCategoryAmount
-				})
+					amount: postCategoryAmount,
+				});
 			}
 
 			const promises = files.map(async (data, index) => {
@@ -72,13 +73,20 @@ export const createAnnouncement = async (request) => {
 					announcementId: createData?.id,
 					filePath: data.path,
 					fileType: data.fileType,
+					fileMimeType: data.fileMimeType,
+					isConverted: 0,
 				};
+
 				return await AnnouncementMedia.create(mediaData);
 			});
 			const resolvedData = await Promise.all(promises);
 
 			const getUsrWalletAmt = await User.findOne({ where: { id: user.id }, attributes: ['walletAmount'] });
 			const { walletAmount } = getUsrWalletAmt;
+			if (hasiPhoneMobileVideos === true) {
+				//=========== trigger convert mov to mp4 files =====================//
+				processMovConvertProcess();
+			}
 			return {
 				status: 200,
 				data: { walletAmount, createData },
@@ -93,10 +101,10 @@ export const createAnnouncement = async (request) => {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
-export const updateAnnouncement = async (request) =>{
+export const updateAnnouncement = async (request) => {
 	try {
-		const { payload, user, files } = request;
-		 
+		const { payload, user, files, hasiPhoneMobileVideos } = request;
+
 		const announcement_id = payload?.id;
 		const announcementData = {
 			title: payload?.title,
@@ -105,36 +113,41 @@ export const updateAnnouncement = async (request) =>{
 			description: payload?.description,
 			locationId: payload?.locationId,
 			location: payload?.location,
-			subLocationId: payload?.subLocationId,
+			subLocationId: parseInt(payload?.subLocationId) || 0,
 			subLocation: payload?.subLocation,
 			gpDeliveryOrigin: payload?.gpDeliveryOrigin,
 			gpDeliveryDestination: payload?.gpDeliveryDestination,
 			gpDeliveryDate: payload?.gpDeliveryDate,
-			phoneCountryCode:payload?.phoneCountryCode,
+			phoneCountryCode: payload?.phoneCountryCode,
 			contactNumber: payload?.contactNumber,
 		};
-		if(payload?.deleteImages){
-			const delImages = JSON.parse(payload?.deleteImages)
-			delImages.forEach(async (dImage,dIndex)=>{
-				await AnnouncementMedia.destroy({ where: { id: dImage } })
-			})
+		if (payload?.deleteImages) {
+			const delImages = JSON.parse(payload?.deleteImages);
+			delImages.forEach(async (dImage, dIndex) => {
+				await AnnouncementMedia.destroy({ where: { id: dImage } });
+			});
 		}
-        //announcement update
+		//announcement update
 		await Announcement.update(announcementData, {
 			where: {
 				id: announcement_id,
 			},
 		});
+
 		const promises = files.map(async (data, index) => {
 			const mediaData = {
 				announcementId: announcement_id,
 				filePath: data.path,
 				fileType: data.fileType,
+				fileMimeType: data.fileMimeType,
+				isConverted: 0,
 			};
+
 			return await AnnouncementMedia.create(mediaData);
 		});
 		const resolvedData = await Promise.all(promises);
-		const anouncementDetails = await Announcement.findOne({ where: { id: announcement_id },
+		const anouncementDetails = await Announcement.findOne({
+			where: { id: announcement_id },
 			attributes: {
 				include: [
 					[
@@ -150,100 +163,97 @@ export const updateAnnouncement = async (request) =>{
 					model: AnnouncementMedia,
 					as: 'announcementMedias',
 				},
-				 
 			],
-		
 		});
-
+		if (hasiPhoneMobileVideos === true) {
+			//=========== trigger convert mov to mp4 files =====================//
+			processMovConvertProcess();
+		}
 
 		return {
 			status: 200,
-			data: {item: anouncementDetails},
+			data: { item: anouncementDetails },
 			message: 'Announcement updated successfully',
 			error: {},
 		};
-	}catch (e) {
+	} catch (e) {
 		console.log(e.message);
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
+};
 
-}
-export const  deleteAnnouncement = async (request) =>{
-	
+export const deleteAnnouncement = async (request) => {
 	try {
 		const { payload, user } = request;
-            //deleteExistingAvatar
-			const { rows: announcementMedias } = await AnnouncementMedia.findAndCountAll({ where: { announcementId: payload.id } });
-			if(announcementMedias.length > 0){
-				announcementMedias.forEach(async (annData,annIndex)=>{
-					const deleteFile  = await deleteExistingAvatar(annData.filePath);
-				})
-			}
+		//deleteExistingAvatar
+		const { rows: announcementMedias } = await AnnouncementMedia.findAndCountAll({ where: { announcementId: payload.id } });
+		if (announcementMedias.length > 0) {
+			announcementMedias.forEach(async (annData, annIndex) => {
+				const deleteFile = await deleteExistingAvatar(annData.filePath);
+			});
+		}
 
-			await Announcement.destroy({ where: { id: payload.id } });
-			await AnnouncementMedia.destroy({ where: { announcementId: payload.id } });
+		await Announcement.destroy({ where: { id: payload.id } });
+		await AnnouncementMedia.destroy({ where: { announcementId: payload.id } });
 
 		return {
 			status: 200,
-			data: {delete:1},
+			data: { delete: 1 },
 			message: 'Record deleted successfully !',
 			error: {},
 		};
 	} catch (e) {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
-
-}
-export const reportAnnouncement = async (request)=>{
+};
+export const reportAnnouncement = async (request) => {
 	try {
 		const { payload, user } = request;
 		const check = await Report.findOne({
 			where: {
-				userId:user?.id,
-			     announcementId:payload?.id,
+				userId: user?.id,
+				announcementId: payload?.id,
 			},
 		});
-		if(check?.id){
-			  return { status: 500, data: [], error: { message: 'You already submit  report!' } };	
+		if (check?.id) {
+			return { status: 500, data: [], error: { message: 'You already submit  report!' } };
 		}
-		 await Report.create({
-			userId:user?.id,
-			announcementId:payload?.id,
-			reason:payload?.reason,
-		});	 
+		await Report.create({
+			userId: user?.id,
+			announcementId: payload?.id,
+			reason: payload?.reason,
+		});
 		return {
 			status: 200,
-			data: {submit:1},
+			data: { submit: 1 },
 			message: 'Report submitted successfully !',
 			error: {},
 		};
 	} catch (e) {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
-
-}
-export const closeAnnouncement = async (request) =>{
+};
+export const closeAnnouncement = async (request) => {
 	try {
 		const { payload, user } = request;
-			await Announcement.update(
-				{ status: 'INACTIVE' },
-				{
-					where: {
-						id: payload.id,
-					},
-				}
-			);
+		await Announcement.update(
+			{ status: 'INACTIVE' },
+			{
+				where: {
+					id: payload.id,
+				},
+			}
+		);
 		return {
 			status: 200,
-			data: {delete:1},
+			data: { delete: 1 },
 			message: 'Record deleted successfully !',
 			error: {},
 		};
 	} catch (e) {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
-
-}
+};
 export const checkAnnouncementFavourite = async (request) => {
 	try {
 		const { payload } = request;
@@ -293,7 +303,7 @@ export const addAnnouncementFavourite = async (request) => {
 		}
 		//set favorite
 		if (setLike === 1) {
-			 await Favorites.create( {
+			await Favorites.create({
 				announcementId: payload.id,
 				addedBy: payload.user_id,
 			});
@@ -305,7 +315,6 @@ export const addAnnouncementFavourite = async (request) => {
 				addedBy: payload.user_id,
 			},
 		});
-
 
 		let isLike = 0;
 		if (checkFav?.id) {
@@ -346,7 +355,6 @@ export const listAnnouncement = async (request) => {
 					model: AnnouncementMedia,
 					as: 'announcementMedias',
 				},
-				 
 			],
 
 			offset: offset,
@@ -370,7 +378,7 @@ export const listAnnouncement = async (request) => {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
 };
-export const getListPremium =   async (request) => {
+export const getListPremium = async (request) => {
 	try {
 		const { payload } = request;
 		const limit = 15;
@@ -381,7 +389,7 @@ export const getListPremium =   async (request) => {
 		const offset = (page - 1) * limit;
 		console.log(locationids);
 
-		const whereData = { status: 'ACTIVE', isPremium: 1 , category: { [Op.ne]: 'gp_delivery'} };
+		const whereData = { status: 'ACTIVE', isPremium: 1, category: { [Op.ne]: 'gp_delivery' } };
 		if (cat !== '') {
 			whereData.category = cat;
 		}
@@ -398,7 +406,7 @@ export const getListPremium =   async (request) => {
 		if (locationids && locationids.length > 0) {
 			// Include condition for locationids
 			whereData.locationId = { [Op.in]: locationids };
-		  }
+		}
 		const { count, rows } = await Announcement.findAndCountAll({
 			where: whereData,
 			attributes: {
@@ -420,7 +428,6 @@ export const getListPremium =   async (request) => {
 					model: SubLocations,
 					as: 'announcementSubLocation',
 				},
-				 
 			],
 
 			offset: offset,
@@ -443,8 +450,7 @@ export const getListPremium =   async (request) => {
 	} catch (e) {
 		return { status: 500, data: [], error: { message: 'Something went wrong !', reason: e.message } };
 	}
-
-}
+};
 export const getListGlobal = async (request) => {
 	try {
 		const { payload } = request;
@@ -473,7 +479,7 @@ export const getListGlobal = async (request) => {
 		if (locationids && locationids.length > 0) {
 			// Include condition for locationids
 			whereData.locationId = { [Op.in]: locationids };
-		  }
+		}
 		const { count, rows } = await Announcement.findAndCountAll({
 			where: whereData,
 			attributes: {
@@ -495,9 +501,7 @@ export const getListGlobal = async (request) => {
 					model: SubLocations,
 					as: 'announcementSubLocation',
 				},
-				 
 			],
-
 
 			offset: offset,
 			limit: limit,
@@ -777,9 +781,8 @@ export const myAnnouncementListing = async (request) => {
 					model: SubLocations,
 					as: 'announcementSubLocation',
 				},
-				 
 			],
-			 
+
 			offset: offset,
 			limit: limit,
 			order: [['id', 'DESC']],
@@ -829,16 +832,17 @@ export const myFavoriteAnnouncementListing = async (request) => {
 							],
 						],
 					},
-					include: [{
-						model: Locations,
-						as: 'announcementLocation',
-					},
-					{
-						model: SubLocations,
-						as: 'announcementSubLocation',
-					}],
+					include: [
+						{
+							model: Locations,
+							as: 'announcementLocation',
+						},
+						{
+							model: SubLocations,
+							as: 'announcementSubLocation',
+						},
+					],
 				},
-				
 			],
 		});
 
@@ -862,19 +866,27 @@ export const myFavoriteAnnouncementListing = async (request) => {
 export const getAnnouncementDetails = async (request) => {
 	try {
 		const { payload } = request;
-		const anouncementDetails = await Announcement.findOne({ where: { id: payload.id },include: [
-			 
-			{
-				model: Locations,
-				as: 'announcementLocation',
+		const anouncementDetails = await Announcement.findOne({
+			where: { id: payload.id },
+			include: [
+				{
+					model: Locations,
+					as: 'announcementLocation',
+				},
+				{
+					model: SubLocations,
+					as: 'announcementSubLocation',
+				},
+			],
+		});
+		const { rows: announcementMedias } = await AnnouncementMedia.findAndCountAll({
+			where: {
+				announcementId: payload.id,
+				fileMimeType: {
+					[Op.ne]: 'video/quicktime',
+				},
 			},
-			{
-				model: SubLocations,
-				as: 'announcementSubLocation',
-			},
-			 
-		], });
-		const { rows: announcementMedias } = await AnnouncementMedia.findAndCountAll({ where: { announcementId: payload.id } });
+		});
 
 		return {
 			status: 200,

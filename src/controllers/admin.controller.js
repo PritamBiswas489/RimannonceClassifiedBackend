@@ -201,7 +201,7 @@ export const sendContactUsEmail =  async (request) => {
 			const htmlToSend = await generateHtmlTemplate(htmlPath, { message });
 			const mailOptions = {
 				from: MAIL_FROM,
-				to: 'pritam.biswas489@gmail.com',
+				to: email,
 				subject: subject,
 				html: htmlToSend,
 				attachments: [

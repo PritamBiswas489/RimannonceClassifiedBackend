@@ -8,7 +8,11 @@ import bodyParser from 'body-parser';
 import { default as apiRouter } from './routes/index.router.js';
 import customReturn from './middlewares/responseBuilder.js';
 import { deleteExistingAvatar } from './libraries/utility.js';
-// import ffmpeg from 'fluent-ffmpeg';
+import ffmpeg from 'fluent-ffmpeg';
+import { isMOVFile } from './libraries/utility.js';
+import { processMovConvertProcess } from './services/videoencoding.service.js'; 
+ 
+ 
  
 
 
@@ -43,29 +47,35 @@ app.get('/share/:id', (req, res, next) => {
 	res.redirect(`rimannonceclassifiedapp://announcement/details/${id}`) 
 });
 
-// app.get('/fluent-ffmpeg-test', (req, res, next) => {
-// 	const inputVideo = '/upload-announcement-files/videos_4-1706269758766-784760595.mp4';
-// 	const outputImage = 'output.jpg';
+app.get('/fluent-ffmpeg-test', (req, res, next) => {
+	   const inputFile  = `${publicDir}/IMG_3715.MOV`
+		// Output file path (.mp4)
+		const outputFile = `${publicDir}/output.mp4`;
+		// Convert .mov to .mp4
+		ffmpeg(inputFile)
+			.outputOptions('-c:v', 'libx264')
+			.on('error', function(err) {
+				console.error('Error occurred: ' + err.message);
+				res.send({ msg: 'Error occurred: ' + err.message });
+			})
+			.on('end', function() {
+				console.log('Conversion finished');
+				res.send({ msg: 'Conversion finished' });
+			})
+			.save(outputFile);
+			 
+})
+app.get('/convert-mov-mpfour-process',async (req, res, next) => {
+	const response = await processMovConvertProcess()
+	res.send(response)
+})
 
-// 	ffmpeg(inputVideo)
-// 	.output('screenshot.png')
-// 	.noAudio()
-// 	.seek('3:00')
-  
-	 
-// 	.on('error', function(err) {
-// 	  console.log('An error occurred: ' + err.message);
+app.get('/checking-is-mov-file',async (req, res, next) => {
+	const fileOne  = `${publicDir}/IMG_3715.MOV`
+	const fileTwo  = `${publicDir}/output.mp4`
 
-// 	  res.send({ msg: err.message });
-// 	})
-// 	.on('end', function() {
-	   
-// 	  res.send({ msg: 'Processing finished !' });
-// 	})
-// 	.run();
-
-	
-// })
+	res.send({ file1: await isMOVFile(fileOne), file2: await isMOVFile(fileTwo) });
+})
 
  
 app.use((req, res, next) => {
